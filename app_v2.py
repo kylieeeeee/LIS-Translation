@@ -6,19 +6,22 @@ from LIS_data import LIS_Data
 from openpyxl import load_workbook
 from io import BytesIO
 
+## Create authentications https://towardsdatascience.com/how-to-add-a-user-authentication-service-in-streamlit-a8b93bf02031
+## Privacy setting https://docs.streamlit.io/knowledge-base/deploy/share-apps-with-viewers-outside-organization
+## Sharing setting https://docs.streamlit.io/streamlit-cloud/get-started/share-your-app
 
 st.set_page_config(page_title="LIS Translation Tool", page_icon='🗃️', 
                 layout="wide",
                 initial_sidebar_state="expanded",
      menu_items={
-        #  'Get Help': '# 🆘🆘🆘🆘🆘🆘',
-        #  'Report a bug': "# 🐛🐛🐛🐛🐞🐞🐞🐞",
          'About': "# This is the LIS file translation tool."
      })
 
 st.title('🗃️LIS File Translation Tool🧰⚙️')
 
 ## Functions
+
+# Function for saving the user-defined dictionary
 def create_panelDef(panel_file):
     """
         Translate the input file to a dictionary.
@@ -39,7 +42,6 @@ def create_panelDef(panel_file):
         panelDict[test_name] = {'Include': include, 'Material': material, 'Result_Test': roche_names}
     return panelDict
 
-
 # Function to save all dataframes to one single excel
 def dfs_to_excel(df_list, sheet_list): 
     output = BytesIO()
@@ -52,10 +54,11 @@ def dfs_to_excel(df_list, sheet_list):
     return processed_data
 
 
+## paths for data if running online
+path_medicare = 'data/Medicare Panels.csv'
+path_roche_tests = 'data/tests performed by instruments.csv'
 
-## Create authentications https://towardsdatascience.com/how-to-add-a-user-authentication-service-in-streamlit-a8b93bf02031
-## Privacy setting https://docs.streamlit.io/knowledge-base/deploy/share-apps-with-viewers-outside-organization
-
+#=======================================================================================================#
 
 ## Section 1: Upload the excel file that need translation
 st.header("1️⃣Select the file which needs translation:")
@@ -98,22 +101,22 @@ if uploaded_file is not None:
             except AttributeError:
                 st.warning("🚨 There are invalid test names 🚨")
 
+#=======================================================================================================#
 
-
-## section 2: upload dictionary
+## Section 2: upload dictionary
 st.header('2️⃣Upload dictionary')
 dict_source = st.selectbox('Do you want to use your own dictionary or the base dictionary?',
 ['  ', 'Upload my own dictionary', 'Use the base dictionary'])
 st.session_state.dict_source = dict_source
 
-# the list to save all the LIS_Dict objects
-panelDict = []
+# create an empty dictionary for saving the user-defined dictionary
+panelDict = {}
 if 'panelDict' not in st.session_state:
     st.session_state.panelDict = panelDict
 
-#User upload their own dictionary
+# User upload their own dictionary
 if dict_source == 'Upload my own dictionary':
-    st.info("The column names of the first 4 columns should be `Test Name`, `Include`, `Material`, and `Result_Test`. **(Case Sensitive)**")
+    st.info("The column names of the first 4 columns should be exactly the same as **Test Name**, **Include**, **Material**, and **Result_Test**.")
     uploaded_dict = st.file_uploader("Select the excel file. Please make sure the file follows the format.")
     if uploaded_dict is not None:
         own_dict = pd.ExcelFile(uploaded_dict)
@@ -133,6 +136,7 @@ if dict_source == 'Upload my own dictionary':
                     st.write("Here are the first 10 rows of data")
                     st.write(own_dict_sheet.head(10))
 
+                # If the button is clicked, app will save the dictionary
                 if st.button('📤 Upload Dictionary 📤'):
                     panelDict = create_panelDef(own_dict_sheet)
                     st.session_state.panelDict = panelDict
@@ -143,7 +147,10 @@ if dict_source == 'Upload my own dictionary':
 # User select to use the base dictionary
 # base dictionary is the medicare panels
 if dict_source == 'Use the base dictionary':
-    medicare_panel = pd.read_csv('Medicare Panels.csv', index_col=0)
+    #medicare_panel = pd.read_csv('Medicare Panels.csv', index_col=0)
+    #Use the below code to upload data if running online
+    medicare_panel = pd.read_csv(path_medicare, index_col = 0
+    
     medicare_panel['Result_Test'].fillna('NA', inplace=True)
     st.session_state.medicare_panel = medicare_panel
     with st.expander("Click here to check the base dicitonary"):
@@ -154,7 +161,12 @@ if dict_source == 'Use the base dictionary':
 
 
 # Read in all roche test names by different instruments and save in rocheDef
-roche_test_by_platform = pd.read_csv('tests performed by instruments.csv', index_col=0)
+# roche_test_by_platform = pd.read_csv('tests performed by instruments.csv', index_col=0)
+
+#Use the below code to upload data if running online
+roche_test_by_platform = pd.read_csv(path_roche_tests, index_col=0)
+
+# create an empty dictionary for saving all roche test names
 rocheDict = {}
 if 'rocheDict' not in st.session_state:
     st.session_state.rocheDict = rocheDict
@@ -191,7 +203,7 @@ with col5:
 if st.button('🖱️ Click here to start matching ⏳'):
     if st.session_state.list_of_LIS == []:
         st.warning("🚨 You haven't uploaded your raw file that need translation 🚨")
-    if st.session_state.panelDict == []:
+    if st.session_state.panelDict == {}:
         st.warning("🚨 You haven't uploaded or chose your panel definition 🚨")
 
     else:
@@ -209,12 +221,14 @@ if st.button('🖱️ Click here to start matching ⏳'):
                 data.setRocheTest(panelDict[data.getTestName()]['Result_Test'])
                 data.setMatchFound()
                 data.setNumberOfRocheTest(len(data.getRocheTest()))
+                data.setSourceDict('Panel Definitions')
 
             # If the test name is the same as roche names
             elif data.getTestName() in rocheDict.keys():
                 data.setRocheTest(rocheDict[data.getTestName()]['Result_Test'])
                 data.setMatchFound()
                 data.setNumberOfRocheTest(len(data.getRocheTest()))
+                data.setSourceDict('Roche Test List')
 
             else:
                 # test is unknown, append the test into the new dictionary
@@ -235,10 +249,10 @@ if st.button('🖱️ Click here to start matching ⏳'):
         tmp = []
         for i in range(len(matched_LIS)):
             tmp.append([matched_LIS[i].getId(), matched_LIS[i].getTestName(), 
-                    matched_LIS[i].getRocheTest(), matched_LIS[i].getMatchFound()])
+                    matched_LIS[i].getRocheTest(), matched_LIS[i].getSourceDict()])
 
         matched_df = pd.DataFrame(tmp)
-        matched_df.columns = ['Patient ID', 'LIS Test Name', 'Assay Name', 'Match Found']
+        matched_df.columns = ['Patient ID', 'LIS Test Name', 'Assay Name', 'Source']
         matched_df = matched_df.explode('Assay Name')
         matched_df = matched_df.astype(str)
         st.session_state.matched_df = matched_df
