@@ -3,7 +3,6 @@ from operator import index
 import pandas as pd
 import streamlit as st
 from LIS_data import LIS_Data
-from openpyxl import load_workbook
 from io import BytesIO
 
 ## Create authentications https://towardsdatascience.com/how-to-add-a-user-authentication-service-in-streamlit-a8b93bf02031
