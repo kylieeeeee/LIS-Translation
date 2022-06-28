@@ -179,7 +179,7 @@ if dict_source == 'Upload my own dictionary':
 # User select to use the base dictionary
 # base dictionary is the medicare panels
 if dict_source == 'Use the base dictionary':
-    medicare_panel = pd.read_csv(path_medicare, index_col = 0
+    medicare_panel = pd.read_csv(path_medicare, index_col = 0)
 
     medicare_panel['Result_Test'].fillna('NA', inplace=True)
     st.session_state.medicare_panel = medicare_panel
