@@ -89,7 +89,7 @@ if 'list_of_LIS' not in st.session_state:
     st.session_state.list_of_LIS = list_of_LIS
 
 if uploaded_file is not None:
-      try:
+  try:
         LIS_file = pd.ExcelFile(uploaded_file)
         all_sheets = ['(Not Selected Yet)'] + LIS_file.sheet_names
 
