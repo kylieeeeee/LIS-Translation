@@ -90,38 +90,37 @@ if 'list_of_LIS' not in st.session_state:
 
 if uploaded_file is not None:
   try:
-        LIS_file = pd.ExcelFile(uploaded_file)
-        all_sheets = ['(Not Selected Yet)'] + LIS_file.sheet_names
+    LIS_file = pd.ExcelFile(uploaded_file)
+    all_sheets = ['(Not Selected Yet)'] + LIS_file.sheet_names
 
-        ## User select the sheet name that needs translation
-        selected_sheet = st.selectbox('Select the sheet name:', all_sheets, key='raw_data_selection')
+    ## User select the sheet name that needs translation
+    selected_sheet = st.selectbox('Select the sheet name:', all_sheets, key='raw_data_selection')
 
-        ## to read just one sheet to dataframe and display the sheet:
-        if selected_sheet != '(Not Selected Yet)':
-            LIS_sheet = pd.read_excel(LIS_file, sheet_name = selected_sheet)
-            st.session_state.raw_data = LIS_sheet
-            with st.expander("Click here to check the file you upoaded"):
-                st.write("Number of observations: " + str(len(LIS_sheet)))
-                st.write("Here are the first 10 rows of data")
-                st.write(LIS_sheet.head(10))
-            ID_column = st.selectbox("Select the column for patient ID", LIS_sheet.columns)
-            st.session_state.ID_column = ID_column
-            test_name_column = st.selectbox('Select the columns for LIS test names', LIS_sheet.columns)
-            st.session_state.test_name_column = test_name_column
+    ## to read just one sheet to dataframe and display the sheet:
+    if selected_sheet != '(Not Selected Yet)':
+        LIS_sheet = pd.read_excel(LIS_file, sheet_name = selected_sheet)
+        st.session_state.raw_data = LIS_sheet
+        with st.expander("Click here to check the file you upoaded"):
+            st.write("Number of observations: " + str(len(LIS_sheet)))
+            st.write("Here are the first 10 rows of data")
+            st.write(LIS_sheet.head(10))
+        ID_column = st.selectbox("Select the column for patient ID", LIS_sheet.columns)
+        st.session_state.ID_column = ID_column
+        test_name_column = st.selectbox('Select the columns for LIS test names', LIS_sheet.columns)
+        st.session_state.test_name_column = test_name_column
 
-            if st.button('📤 Upload Raw Data'):
-                # create LIS objects for each row
-                try:
-                    for i in range(len(LIS_sheet)):
-                        patient_id = LIS_sheet[ID_column][i]
-                        test_name = str(LIS_sheet[test_name_column][i])
-                        tmp = LIS_Data(patient_id, test_name)
-                        list_of_LIS.append(tmp)
-                        st.session_state.list_of_LIS = list_of_LIS
-
-                except AttributeError:
-                    st.warning("🚨 There are invalid test names")
-
+        if st.button('📤 Upload Raw Data'):
+            # create LIS objects for each row
+            try:
+                for i in range(len(LIS_sheet)):
+                    patient_id = LIS_sheet[ID_column][i]
+                    test_name = str(LIS_sheet[test_name_column][i])
+                    tmp = LIS_Data(patient_id, test_name)
+                    list_of_LIS.append(tmp)
+                    st.session_state.list_of_LIS = list_of_LIS
+            except AttributeError:
+                st.warning("🚨 There are invalid test names")
+                
     except ValueError:
         st.error("🚨The file you upload is not an Excel file (.xlsx)")
     
