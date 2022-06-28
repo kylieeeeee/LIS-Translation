@@ -118,7 +118,7 @@ if uploaded_file is not None:
                         tmp = LIS_Data(patient_id, test_name)
                         list_of_LIS.append(tmp)
                         st.session_state.list_of_LIS = list_of_LIS
-                        st.success('File uploaded successfully')
+                    st.success('File uploaded successfully')
 
                 except AttributeError:
                     st.warning("🚨 There are invalid test names")
