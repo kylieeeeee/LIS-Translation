@@ -10,7 +10,7 @@ from io import BytesIO
 ## Sharing setting https://docs.streamlit.io/streamlit-cloud/get-started/share-your-app
 
 st.set_page_config(page_title="LIS Translation Tool", page_icon='🗃️', 
-                layout="wide",
+                #layout="wide",
                 initial_sidebar_state="expanded",
      menu_items={
          'About': "# This is the LIS file translation tool."
