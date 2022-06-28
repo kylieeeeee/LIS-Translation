@@ -1,4 +1,5 @@
 streamlit
+xlrd ==1.0.0
 numpy==1.19.2
 pandas==1.2.2
 
