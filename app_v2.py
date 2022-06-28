@@ -118,6 +118,7 @@ if uploaded_file is not None:
                         tmp = LIS_Data(patient_id, test_name)
                         list_of_LIS.append(tmp)
                         st.session_state.list_of_LIS = list_of_LIS
+                        st.success('File uploaded successfully')
 
                 except AttributeError:
                     st.warning("🚨 There are invalid test names")
@@ -166,6 +167,7 @@ if dict_source == 'Upload my own dictionary':
                     if st.button('📤 Upload Dictionary'):
                         panelDict = create_panelDef(own_dict_sheet)
                         st.session_state.panelDict = panelDict
+                        st.success('File uploaded successfully')
 
                 except KeyError:
                     st.warning('🚨 Your dictionary does not follow the naming conventions')
