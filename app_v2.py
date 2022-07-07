@@ -71,7 +71,7 @@ if uploaded_file is not None:
     
 #=======================================================================================================#
 
-panelDict = f.load_json('LIS DB.json')
+panelDict = f.load_json('data/LIS DB.json')
 st.session_state.panelDict = panelDict
 threshold = st.slider('Select the threshold of confidence score', 0, 100, 80)
 st.session_state.threshold = threshold
