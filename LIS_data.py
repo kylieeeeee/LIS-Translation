@@ -9,7 +9,7 @@ class LIS_Data:
         #patient ID in client's raw data
         self.__ID = patient_id 
         #client LIS test name, save it as all upper class letter
-        self.__testName = test_name.upper() 
+        self.__testName = test_name
         #self.arrivalTime
         #self.resultTime
         #corresponding roche test names found in panel def
@@ -54,20 +54,8 @@ class LIS_Data:
     def setSourceDict(self, source_dict):
         self.__sourceDict = source_dict
 
-    # def findMatch(self, panel_dict):
-    #     #panel_dict = combined_dict
-    #     LIS_name = self.getTestName()
-
-    #     # If the LIS test name is found in panel definition
-    #     if LIS_name in panel_dict.keys():
-    #         self.setRocheTest(panel_dict[LIS_name])
-    #         self.setMatchFound()
-    #         self.setNumberOfRocheTest(len(panel_dict[LIS_name]))
         
-
-
-
-
+        
 class LIS_Dict:
     def __init__(self, test_name:str):
         self.__LISName = test_name
