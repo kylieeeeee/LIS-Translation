@@ -16,7 +16,7 @@ st.set_page_config(page_title="LIS Translation Tool", page_icon='🗃️',
          'About': "# This is the LIS file translation tool."
      })
 
-     
+
 st.title('🗃️LIS File Translation Tool🧰⚙️')
 st.header('Using the similarity scores to compare tests')
 
@@ -153,21 +153,20 @@ if st.button('Click here to start matching'):
     raw_data = st.session_state.raw_data
     LIS_column = st.session_state.test_name_column
     result_df = raw_data.copy()
-    result_df.dropna(subset = LIS_column, inplace = True)
+    result_df.dropna(subset = [LIS_column], inplace = True)
     st.session_state.result_df = result_df
 
-for index, row in result_df.iterrows():
-    # result_df.loc[index,'Similar Test'] = match_result[row[LIS_column]]['SimilarTest']
-    # result_df.loc[index, 'Assay Name'] = match_result[row[LIS_column]]['AssayName']
-    # result_df.loc[index, 'Confidence Score'] = round(match_result[row[LIS_column]]['ConfidenceScore'],3)
-    result_df['Similar Test'].iloc[index] = match_result[row[LIS_column]]['SimilarTest']
-    result_df['Assay Name'].iloc[index] = match_result[row[LIS_column]]['AssayName']
-    result_df['Confidence Score'].iloc[index] = round(match_result[row[LIS_column]]['ConfidenceScore'],3)
-    st.session_state.result_df = result_df
+    for index, row in result_df.iterrows():
+        # result_df.loc[index,'Similar Test'] = match_result[row[LIS_column]]['SimilarTest']
+        # result_df.loc[index, 'Assay Name'] = match_result[row[LIS_column]]['AssayName']
+        # result_df.loc[index, 'Confidence Score'] = round(match_result[row[LIS_column]]['ConfidenceScore'],3)
+        result_df['Similar Test'].iloc[index] = match_result[row[LIS_column]]['SimilarTest']
+        result_df['Assay Name'].iloc[index] = match_result[row[LIS_column]]['AssayName']
+        result_df['Confidence Score'].iloc[index] = round(match_result[row[LIS_column]]['ConfidenceScore'],3)
+        st.session_state.result_df = result_df
 
-
-st.text('The result file with translation')
-st.write(result_df)
+    st.text('The result file with translation')
+    st.write(result_df)
 
 
     # output the excel file and let the user download
