@@ -157,12 +157,9 @@ if st.button('Click here to start matching'):
     st.session_state.result_df = result_df
 
     for index, row in result_df.iterrows():
-        # result_df.loc[index,'Similar Test'] = match_result[row[LIS_column]]['SimilarTest']
-        # result_df.loc[index, 'Assay Name'] = match_result[row[LIS_column]]['AssayName']
-        # result_df.loc[index, 'Confidence Score'] = round(match_result[row[LIS_column]]['ConfidenceScore'],3)
-        result_df['Similar Test'].iloc[index] = match_result[row[LIS_column]]['SimilarTest']
-        result_df['Assay Name'].iloc[index] = match_result[row[LIS_column]]['AssayName']
-        result_df['Confidence Score'].iloc[index] = round(match_result[row[LIS_column]]['ConfidenceScore'],3)
+        result_df.loc[index,'Similar Test'] = match_result[row[LIS_column]]['SimilarTest']
+        result_df.loc[index, 'Assay Name'] = match_result[row[LIS_column]]['AssayName']
+        result_df.loc[index, 'Confidence Score'] = round(match_result[row[LIS_column]]['ConfidenceScore'],3)
         st.session_state.result_df = result_df
 
     st.text('The result file with translation')
