@@ -16,11 +16,15 @@ st.set_page_config(page_title="LIS Translation Tool", page_icon='🗃️',
      })
 
 st.title('🗃️LIS File Translation Tool🧰⚙️')
-st.header('Update dictionary')
+st.header('Upload your dictionary')
 
-# dict_source = st.selectbox('Do you want to use your own dictionary or the base dictionary?',
-# ['  ', 'Upload my own dictionary', 'Use the base dictionary'])
-# st.session_state.dict_source = dict_source
+with st.expander('Click here to view the instructions'):
+    st.markdown("""
+    #### Instructions
+1. Select your dictionary file. **ONLY EXCEL files are accepted**
+2. Select the sheet that contains your dictionary.
+3. Click the **Upload Dictionary** button to upload.
+    """)
 
 # create an empty dictionary for saving the user-defined dictionary
 panelDict = {}
@@ -40,7 +44,7 @@ st.markdown("""
 """)
 
 
-uploaded_dict = st.file_uploader("Select the excel file. Please make sure the file follows the format.")
+uploaded_dict = st.file_uploader("Select the excel file. Please make sure the file follows the format above.")
 if uploaded_dict is not None:
     try:
         own_dict = pd.ExcelFile(uploaded_dict)
@@ -71,7 +75,7 @@ if uploaded_dict is not None:
                         assay = row['Assay Name']
                         newDict[test_name] = {'Include': include, 'Material': material, 'AssayName': assay}
                     st.session_state.newDict = newDict
-                    st.success('Dicitonary uploaded successfully')
+                    st.success('🎉 Dicitonary uploaded successfully')
 
             except KeyError:
                 st.warning('🚨 Your dictionary does not follow the naming conventions. Column names should be **Test Name**, **Include**, **Material**, **Assay Name**.')
