@@ -28,10 +28,17 @@ if 'panelDict' not in st.session_state:
     st.session_state.panelDict = panelDict
 
 # User upload their own dictionary
-st.info("The column names of the dictionary should at least include\
-        **Test Name**, **Include**, **Material**, and **Assay Name**.\n \
-        If a LIS test is corresponding to multiple assays,\
-        please type all the assay name in one cell and separate with comma(,)")
+st.info("**Please make sure the dictionary follows the format below, or the upload will not succeed.**")
+st.markdown("""
+| Test Name | Include | Material | Assay Name |
+| ----------- | ----------- | ----------- | ----------- |
+| BMP | 1 | SERUM | CO27,GLU7,CA7,CREP7,BUN7|
+| Insulin | 1 | SERUM | INSUL |
+
+> - The 4 columns above are mandatory and the names need to be exactly the same as the example. However, it's fine that your dictionary contains other columns like *Similar Test*, *Confidence Score*. 
+> - If a test name corresponds to multiple assays, please type all the assay names in **ONE cell** and separate the assays with commas(,)
+""")
+
 
 uploaded_dict = st.file_uploader("Select the excel file. Please make sure the file follows the format.")
 if uploaded_dict is not None:
