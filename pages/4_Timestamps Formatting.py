@@ -13,18 +13,25 @@ st.set_page_config(page_title="LIS Translation Tool", page_icon='🗃️',
 
 
 st.title('🗃️LIS File Translation Tool🧰⚙️')
+st.header('Timestamps Formatting')
 st.subheader('Fill in the missing timestamps and format the date and time')
+with st.expander('Click here to view the instructions'):
+    st.markdown("""
+    #### Instructions
+1. Select the file you want to translate. **ONLY EXCEL files are accpeted**
+2. Select the sheet that contains the raw data.
+3. Select the columns for *patient ID*
+4. Select the timestamp columns which you want to format.
+5. Select the delimiter that the raw file is using to separate data and time in the columns
+6. Preview the formatted data below. If the result is correct, click **Download Current Result** to download the formatted file.
+    """)
 
-
-## Section 1: Upload the excel file that need translation
+## Section: Upload the excel file
 st.header('Upload Raw Data')
 uploaded_file = st.file_uploader("Select the file which needs translation:")
 st.info('Please only upload excel file.')
 
-# list to save all LIS_Data objects
-list_of_LIS = []
-if 'list_of_LIS' not in st.session_state:
-    st.session_state.list_of_LIS = list_of_LIS
+
 
 if uploaded_file is not None:
     try:
@@ -34,17 +41,20 @@ if uploaded_file is not None:
         all_sheets = ['(Not Selected Yet)'] + LIS_file.sheet_names
         
         ## User select the sheet name that needs translation
-        selected_sheet = st.selectbox('Select the sheet name:', all_sheets, key='raw_data_selection')
+        selected_sheet = st.selectbox('Select the sheet with raw data:', all_sheets)
 
         ## to read just one sheet to dataframe and display the sheet:
         if selected_sheet != '(Not Selected Yet)':
             raw_data = pd.read_excel(LIS_file, sheet_name = selected_sheet, dtype=str)
-            ID_column = st.selectbox("Select the column for patient ID", raw_data.columns)
-            st.session_state.ID_column = ID_column
-            if raw_data[ID_column].isna().sum() > 0:
-                st.warning('WARNING: There are missing patient ID in this data.  Rows without patient ID will be dropped durning translation.')
-            raw_data[ID_column] = raw_data[ID_column].astype(str)
-            st.session_state.raw_data = raw_data
+            
+            all_columns = ['(Not Selected Yet)'] + list(raw_data.columns)
+            ID_column = st.selectbox("Select the column for patient ID", all_columns)
+            if ID_column != '(Not Selected Yet)':
+                st.session_state.ID_column = ID_column
+                if raw_data[ID_column].isna().sum() > 0:
+                    st.warning('WARNING: There are missing patient ID in this data.  Rows without patient ID will be dropped durning translation.')
+                raw_data[ID_column] = raw_data[ID_column].astype(str)
+                st.session_state.raw_data = raw_data
 
             with st.expander("Click here to check the file you upoaded"):
                 st.write("Number of observations: " + str(len(raw_data)))
@@ -55,8 +65,10 @@ if uploaded_file is not None:
 
             st.markdown('---')
             # select the timestamp columns
-            time_columns = st.multiselect("Select the column of timestamps that need formatting", raw_data.columns)
-            st.info('Please only select the timestamp columns which include BOTH date and time')
+            time_columns = st.multiselect("Select the columns of timestamps that need formatting. ", raw_data.columns)
+            st.info('Please only select the timestamp columns which include **BOTH** date and time.\
+                **Multiple selections are allowed**.')
+
             # input/choose delimiter
             delimiter = st.radio('Select the delimiter that separate date and time in a timestamp column',
                             ('Space', '@', '_'))
@@ -69,16 +81,14 @@ if uploaded_file is not None:
             st.session_state.filled_data = filled_data
 
             # separate the date and time
-            # delimiter???
-            # If data type of time columns is string
             for col in time_columns:
                 try:
                     # see if the time column includes both date and time
-                    if len(filled_data[col][0]) < 18:
+                    if len(filled_data[col][0]) < 11:
                         st.warning('The column you selected does not include BOTH date and time')
                     # check if the delimiter is correct
                     elif filled_data[col][0].find(delimiter) == -1:
-                        st.warning('The selected delimiter is found in the timestamps.')
+                        st.warning('The selected delimiter is not found in the timestamps.')
                     else:
                         # create the new column name                       
                         date_col = col + '__Date'
@@ -97,7 +107,7 @@ if uploaded_file is not None:
                         #     st.warning('Unknown data type')
 
                 except ValueError:
-                    st.error('At least one of the columns you selected does not include BOTH date and time')
+                    st.error('At least one of the columns you selected does not include **BOTH** date and time')
 
 
             st.markdown('---')
