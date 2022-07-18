@@ -20,8 +20,20 @@ st.set_page_config(page_title="LIS Translation Tool", page_icon='🗃️',
 
 
 st.title('🗃️LIS File Translation Tool🧰⚙️')
-st.subheader('Using the similarity scores to compare LIS test names and match with Roche Assay names')
-
+st.header('LIS Translation')
+st.subheader('Use the similarity scores to find the most similar LIS test name in the dictionary and translate into Roche Assay names')
+with st.expander('Click here to view the instructions'):
+    st.markdown("""
+    #### Instructions
+1. Select the file you want to translate. **ONLY EXCEL files are accpeted**
+2. Select the sheet that contains the raw data.
+3. Select the columns for *patient ID* and *LIS test names*.
+4. Select the columns that you wish to include in the **5 columns worksheet**.
+5. Click the **Upload Raw Data** button to upload.
+6. Select the desired threshold for similarity score with the slide bar. The default score is 80.
+7. (Optional) If you have uploaded your own dictionary at **Update Dictionary** page, please check the box.
+8. After the result file is generated, the **Download Cuttent Result** button will show up. Click the button to download the result.
+    """)
 
 ## Section 1: Upload the excel file that need translation
 st.header('Upload Raw Data')
@@ -41,7 +53,7 @@ if uploaded_file is not None:
         all_sheets = ['(Not Selected Yet)'] + LIS_file.sheet_names
         
         ## User select the sheet name that needs translation
-        selected_sheet = st.selectbox('Select the sheet name:', all_sheets, key='raw_data_selection')
+        selected_sheet = st.selectbox('Select the sheet with raw data:', all_sheets)
 
         ## to read just one sheet to dataframe and display the sheet:
         if selected_sheet != '(Not Selected Yet)':
@@ -53,23 +65,29 @@ if uploaded_file is not None:
                 st.write(LIS_sheet.head(10))
                 st.caption("<NA> means there is no value in the cell")
 
-            ID_column = st.selectbox("Select the column for patient ID", LIS_sheet.columns)
-            st.session_state.ID_column = ID_column
-            if LIS_sheet[ID_column].isna().sum() > 0:
-                st.warning('WARNING: There are missing patient ID in this data.  Rows without patient ID will be dropped durning translation.')
-            LIS_sheet[ID_column] = LIS_sheet[ID_column].astype(str)
-            st.session_state.raw_data = LIS_sheet
 
-            test_name_column = st.selectbox('Select the columns for LIS test names', LIS_sheet.columns)
-            st.session_state.test_name_column = test_name_column
-            if LIS_sheet[test_name_column].isna().sum() > 0:
-                st.warning('WARNING: There are missing LIS test names in this data.  Rows without LIS test name will be dropped durning translation.')
+            all_columns = ['(Not Selected Yet)'] + list(LIS_sheet.columns)
+            ID_column = st.selectbox("Select the column for patient ID", all_columns)
+            if ID_column != '(Not Selected Yet)':
+                st.session_state.ID_column = ID_column
+                if LIS_sheet[ID_column].isna().sum() > 0:
+                    st.warning('WARNING: There are missing patient ID in this data.  Rows without patient ID will be dropped durning translation.')
+                LIS_sheet[ID_column] = LIS_sheet[ID_column].astype(str)
+                st.session_state.raw_data = LIS_sheet
+
+            test_name_column = st.selectbox('Select the column for LIS test names', all_columns)
+            if test_name_column != '(Not Selected Yet)':
+                st.session_state.test_name_column = test_name_column
+                if LIS_sheet[test_name_column].isna().sum() > 0:
+                    st.warning('WARNING: There are missing LIS test names in this data.  Rows without LIS test name will be dropped durning translation.')
 
             # Let user select the columns for 5 columns worksheet
             # Patient_ID	Priority	TimeStamp	TestName	Material
             column_options = st.multiselect(
-            'Select the columns for the 5 column worksheet', LIS_sheet.columns)
+            'Select up to 3 column names for the 5 column worksheet', LIS_sheet.columns)
             st.info('Suggestion: Patient_ID, Priority, TimeStamp')
+            if len(column_options) > 3:
+                st.warning("You can only select 3 columns at most.")
             st.session_state.columns_for_5 = column_options
 
             if st.button('📤 Upload Raw Data'):
@@ -83,10 +101,13 @@ if uploaded_file is not None:
                             tmp = LIS_Data(patient_id, test_name)
                             list_of_LIS.append(tmp)
                             st.session_state.list_of_LIS = list_of_LIS
-                    st.success('File uploaded successfully')
+                    st.success('🎉 File uploaded successfully')
 
                 except AttributeError:
-                    st.warning("🚨 There are invalid test names")
+                    st.error("🚨 There are invalid test names")
+
+                except KeyError:
+                    st.warning("🚨 You haven't selected the column for patient ID or LIS test name")
 
     except ValueError:
         st.error("🚨The file you upload is not an Excel file (.xlsx)")
@@ -104,9 +125,10 @@ st.session_state.panelDict = panelDict
 
 # merge the base dictionary with newDict if the user uploaded a new dictionary
 st.markdown('---')
-upload = st.checkbox('Check the box if you uploaded a new dictionary')
-st.info('If this is the first time translating this file or you do not upload your dictionary,\
-         you should not check the box.')
+st.write("Have you uploaded your own dictionary at the **Upload Dictionary** page?")
+upload = st.checkbox('Yes, I uploaded a dictionary.')
+st.info('If this is the first time translating this file or you did not upload your dictionary,\
+         please **DO NOT CHECK** the box.')
 if upload:
     newDict = st.session_state.newDict
     panelDict.update(newDict)
@@ -210,6 +232,7 @@ if st.button('Click here to start matching'):
         graph_data = result_df.copy()
         graph_data = graph_data.assign(Assay_Name = graph_data['Assay Name'].str.split(','))
         graph_data = graph_data.explode(['Assay_Name']).drop(['Assay Name'], axis=1)
+        graph_data = graph_data.rename(columns = {'Assay_Name': 'Assay Name'})
 
 
         # 5 columns worksheet
@@ -217,6 +240,7 @@ if st.button('Click here to start matching'):
         five_column_df = result_df.copy().loc[:, columns]
         five_column_df = five_column_df.assign(Assay_Name = five_column_df['Assay Name'].str.split(','))
         five_column_df = five_column_df.explode(['Assay_Name']).drop(['Assay Name'], axis=1)
+        five_column_df.rename(columns = {'Assay_Name': 'Assay Name'}, inplace = True)
 
 
         # Preview results
@@ -228,6 +252,10 @@ if st.button('Click here to start matching'):
             st.write('The result data with translation and confidence score')
             st.dataframe(result_df)
             st.caption("<NA> means there is no value in the cell")
+            st.markdown('---')
+            st.write('The 5 column workseet')
+            st.dataframe(five_column_df)
+            st.caption("<NA> means there is no value in the cell")  
 
 
         # Formatting the new file name
