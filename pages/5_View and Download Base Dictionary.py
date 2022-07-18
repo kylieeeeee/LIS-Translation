@@ -39,7 +39,7 @@ st.markdown("""
 ---
 ### Please fill out this google form if you find out a LIS test should be included in the base dictionary
 *We will update the base dictionary every month.*
-- [Link to google form]
+- [Google form](https://forms.gle/RedT4n5e1PZvAweXA)
 - [View submitted results]
 
 """)
