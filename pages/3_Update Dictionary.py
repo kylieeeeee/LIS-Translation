@@ -43,7 +43,7 @@ st.markdown("""
 > - If a test name corresponds to multiple assays, please type all the assay names in **ONE cell** and separate the assays with commas(,)
 """)
 
-
+st.markdown('---')
 uploaded_dict = st.file_uploader("Select the excel file. Please make sure the file follows the format above.")
 if uploaded_dict is not None:
     try:
