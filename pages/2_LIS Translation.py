@@ -246,11 +246,11 @@ if st.button('Click here to start matching'):
         # Preview results
         with st.expander("Click here to preview results"):
             st.write('Panel definition for the uploaded raw data')
-            st.dataframe(panel_df)
+            st.dataframe(panel_df.style.format({'Confidence Score': '{:.2f}'}))
             st.caption("<NA> means there is no value in the cell")
             st.markdown('---')
             st.write('The result data with translation and confidence score')
-            st.dataframe(result_df)
+            st.dataframe(result_df.style.format({'Confidence Score': '{:.2f}'}))
             st.caption("<NA> means there is no value in the cell")
             st.markdown('---')
             st.write('The 5 column workseet')
