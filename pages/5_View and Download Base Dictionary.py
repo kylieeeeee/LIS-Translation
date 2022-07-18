@@ -36,6 +36,7 @@ st.download_button(label='📥 Download Base Dictionary 📥',
                                 file_name='Base Dictionary.xlsx')
 
 st.markdown("""
+---
 ### Please fill out this google form if you find out a LIS test should be included in the base dictionary
 *We will update the base dictionary every month.*
 - [Link to google form]
