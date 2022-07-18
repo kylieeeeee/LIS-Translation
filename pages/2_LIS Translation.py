@@ -231,7 +231,7 @@ if st.button('Click here to start matching'):
         # Received Time/Verified Time/Lab/Data Origin
         graph_data = result_df.copy()
         graph_data = graph_data.assign(Assay_Name = graph_data['Assay Name'].str.split(','))
-        graph_data = graph_data.explode(['Assay_Name']).drop(['Assay Name'], axis=1)
+        graph_data = graph_data.explode('Assay_Name').drop(['Assay Name'], axis=1)
         graph_data = graph_data.rename(columns = {'Assay_Name': 'Assay Name'})
 
 
@@ -239,7 +239,7 @@ if st.button('Click here to start matching'):
         columns = st.session_state.columns_for_5 + ['Material', 'Assay Name']
         five_column_df = result_df.copy().loc[:, columns]
         five_column_df = five_column_df.assign(Assay_Name = five_column_df['Assay Name'].str.split(','))
-        five_column_df = five_column_df.explode(['Assay_Name']).drop(['Assay Name'], axis=1)
+        five_column_df = five_column_df.explode('Assay_Name').drop(['Assay Name'], axis=1)
         five_column_df.rename(columns = {'Assay_Name': 'Assay Name'}, inplace = True)
 
 
