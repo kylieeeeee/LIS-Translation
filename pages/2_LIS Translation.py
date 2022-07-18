@@ -105,7 +105,8 @@ st.session_state.panelDict = panelDict
 # merge the base dictionary with newDict if the user uploaded a new dictionary
 st.markdown('---')
 upload = st.checkbox('Check the box if you uploaded a new dictionary')
-st.info('If this is the first time translating this file, you should not check the box.')
+st.info('If this is the first time translating this file or you do not upload your dictionary,\
+         you should not check the box.')
 if upload:
     newDict = st.session_state.newDict
     panelDict.update(newDict)
