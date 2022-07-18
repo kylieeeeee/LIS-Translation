@@ -38,7 +38,7 @@ if uploaded_file is not None:
 
         ## to read just one sheet to dataframe and display the sheet:
         if selected_sheet != '(Not Selected Yet)':
-            raw_data = pd.read_excel(LIS_file, sheet_name = selected_sheet)
+            raw_data = pd.read_excel(LIS_file, sheet_name = selected_sheet, dtype=str)
             ID_column = st.selectbox("Select the column for patient ID", raw_data.columns)
             st.session_state.ID_column = ID_column
             if raw_data[ID_column].isna().sum() > 0:
@@ -51,6 +51,7 @@ if uploaded_file is not None:
                 st.write("Here are the first 10 rows of raw data")
                 st.write(raw_data.head(10))
                 st.caption("<NA> means there is no value in the cell")
+    
 
             st.markdown('---')
             # select the timestamp columns
@@ -72,22 +73,28 @@ if uploaded_file is not None:
             # If data type of time columns is string
             for col in time_columns:
                 try:
-                    # create the new column name
-                    date_col = col + '__Date'
-                    time_col = col + '__Time'
-                    # filled_data[col] = filled_data[col].astype(str)
-                    # filled_data[[date_col, time_col]] = filled_data[col].str.split(delimiter, expand = True)
-
-                    # check the data type of the timestamp column
-                    if filled_data[col].dtypes == 'object':
-                        filled_data[[date_col, time_col]] = filled_data[col].str.split(delimiter, expand = True)
-                        st.session_state.filled_data = filled_data
-                    elif filled_data[col].dtypes == 'datetime64[ns]':
-                        filled_data[date_col] = filled_data[col].apply(lambda x: x.strftime("%Y/%m/%d"))
-                        filled_data[time_col] = filled_data[col].apply(lambda x: x.strftime("%H:%M:%S"))
+                    # see if the time column includes both date and time
+                    if len(filled_data[col][0]) < 18:
+                        st.warning('The column you selected does not include BOTH date and time')
+                    # check if the delimiter is correct
+                    elif filled_data[col][0].find(delimiter) == -1:
+                        st.warning('The selected delimiter is found in the timestamps.')
                     else:
-                        st.write(filled_data[col].dtypes)
-                        st.warning('Unknown data type')
+                        # create the new column name                       
+                        date_col = col + '__Date'
+                        time_col = col + '__Time'
+                        filled_data[[date_col, time_col]] = filled_data[col].str.split(delimiter, expand = True)
+
+                        # # check the data type of the timestamp column
+                        # if filled_data[col].dtypes == 'object':
+                        #     filled_data[[date_col, time_col]] = filled_data[col].str.split(delimiter, expand = True)
+                        #     st.session_state.filled_data = filled_data
+                        # elif filled_data[col].dtypes == 'datetime64[ns]':
+                        #     filled_data[date_col] = filled_data[col].apply(lambda x: x.strftime("%Y/%m/%d"))
+                        #     filled_data[time_col] = filled_data[col].apply(lambda x: x.strftime("%H:%M:%S"))
+                        # else:
+                        #     st.write(filled_data[col].dtypes)
+                        #     st.warning('Unknown data type')
 
                 except ValueError:
                     st.error('At least one of the columns you selected does not include BOTH date and time')
@@ -98,7 +105,6 @@ if uploaded_file is not None:
             st.info('Please scroll to the right to see the newly created columns')
             st.write(filled_data)
             st.caption("<NA> means there is no value in the cell")
-
 
 
             # Formatting the new file name
