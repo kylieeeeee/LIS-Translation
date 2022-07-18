@@ -257,7 +257,7 @@ if st.button('Click here to start matching'):
             st.dataframe(five_column_df)
             st.caption("<NA> means there is no value in the cell")  
 
-
+        st.warning("The result file is still generating, please wait until the download button show up...")
         # Formatting the new file name
         today = datetime.today().strftime("%Y-%m-%d_%H%M")+'_'
         new_file_name = 'Translated_' + today + st.session_state.file_name 
