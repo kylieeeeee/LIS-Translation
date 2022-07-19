@@ -66,6 +66,7 @@ if uploaded_file is not None:
             st.markdown('---')
             # select the timestamp columns
             time_columns = st.multiselect("Select the columns of timestamps that need formatting. ", raw_data.columns)
+            st.session_state.time_columns = time_columns
             st.info('Please only select the timestamp columns which include **BOTH** date and time.\
                 **Multiple selections are allowed**.')
 
@@ -77,6 +78,9 @@ if uploaded_file is not None:
 
             # fill in missing dates
             filled_data = raw_data.copy()
+            time_columns = st.session_state.time_columns
+            ID_column = st.session_state.ID_column
+            
             filled_data[time_columns] = filled_data.groupby(ID_column)[time_columns].ffill().bfill()
             st.session_state.filled_data = filled_data
 
