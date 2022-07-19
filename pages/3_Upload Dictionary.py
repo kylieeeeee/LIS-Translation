@@ -44,7 +44,7 @@ st.markdown("""
 """)
 
 st.markdown('---')
-uploaded_dict = st.file_uploader("Select the excel file. Please make sure the file follows the format above.")
+uploaded_dict = st.file_uploader("Select the excel file. Please make sure the file follows the format above.", type=['xlsx'])
 if uploaded_dict is not None:
     try:
         own_dict = pd.ExcelFile(uploaded_dict)
