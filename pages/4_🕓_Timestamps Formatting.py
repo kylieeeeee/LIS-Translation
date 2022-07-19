@@ -81,52 +81,53 @@ if uploaded_file is not None:
             time_columns = st.session_state.time_columns
             ID_column = st.session_state.ID_column
             
-            filled_data[time_columns] = filled_data.groupby(ID_column)[time_columns].ffill().bfill()
-            st.session_state.filled_data = filled_data
+            if len(time_columns) > 0:
+                filled_data[time_columns] = filled_data.groupby(ID_column)[time_columns].ffill().bfill()
+                st.session_state.filled_data = filled_data
 
-            # separate the date and time
-            for col in time_columns:
-                try:
-                    # see if the time column includes both date and time
-                    if len(filled_data[col][0]) < 11:
-                        st.warning('The column you selected does not include BOTH date and time')
-                    # check if the delimiter is correct
-                    elif filled_data[col][0].find(delimiter) == -1:
-                        st.warning('The selected delimiter is not found in the timestamps.')
-                    else:
-                        # create the new column name                       
-                        date_col = col + '__Date'
-                        time_col = col + '__Time'
-                        filled_data[[date_col, time_col]] = filled_data[col].str.split(delimiter, expand = True)
+                # separate the date and time
+                for col in time_columns:
+                    try:
+                        # see if the time column includes both date and time
+                        if len(filled_data[col][0]) < 11:
+                            st.warning('The column you selected does not include BOTH date and time')
+                        # check if the delimiter is correct
+                        elif filled_data[col][0].find(delimiter) == -1:
+                            st.warning('The selected delimiter is not found in the timestamps.')
+                        else:
+                            # create the new column name                       
+                            date_col = col + '__Date'
+                            time_col = col + '__Time'
+                            filled_data[[date_col, time_col]] = filled_data[col].str.split(delimiter, expand = True)
 
-                        # # check the data type of the timestamp column
-                        # if filled_data[col].dtypes == 'object':
-                        #     filled_data[[date_col, time_col]] = filled_data[col].str.split(delimiter, expand = True)
-                        #     st.session_state.filled_data = filled_data
-                        # elif filled_data[col].dtypes == 'datetime64[ns]':
-                        #     filled_data[date_col] = filled_data[col].apply(lambda x: x.strftime("%Y/%m/%d"))
-                        #     filled_data[time_col] = filled_data[col].apply(lambda x: x.strftime("%H:%M:%S"))
-                        # else:
-                        #     st.write(filled_data[col].dtypes)
-                        #     st.warning('Unknown data type')
+                            # # check the data type of the timestamp column
+                            # if filled_data[col].dtypes == 'object':
+                            #     filled_data[[date_col, time_col]] = filled_data[col].str.split(delimiter, expand = True)
+                            #     st.session_state.filled_data = filled_data
+                            # elif filled_data[col].dtypes == 'datetime64[ns]':
+                            #     filled_data[date_col] = filled_data[col].apply(lambda x: x.strftime("%Y/%m/%d"))
+                            #     filled_data[time_col] = filled_data[col].apply(lambda x: x.strftime("%H:%M:%S"))
+                            # else:
+                            #     st.write(filled_data[col].dtypes)
+                            #     st.warning('Unknown data type')
 
-                except ValueError:
-                    st.error('At least one of the columns you selected does not include **BOTH** date and time')
-
-
-            st.markdown('---')
-            st.write('Preview the new data')
-            st.info('Please scroll to the right to see the newly created columns')
-            st.write(filled_data)
-            st.caption("<NA> means there is no value in the cell")
+                    except ValueError:
+                        st.error('At least one of the columns you selected does not include **BOTH** date and time')
 
 
-            # Formatting the new file name
-            today = datetime.today().strftime("%Y%m%d_%H%M")+'_'
-            new_file_name = 'Time Formatted_' + today + st.session_state.file_name 
-            # output the excel file and let the user download
-            sheet_list = ['Time Formatted Data', 'Raw Data']
-            df_xlsx = f.dfs_to_excel([filled_data, raw_data], sheet_list)
-            st.download_button(label='📥 Download Current Result 📥',
-                                            data=df_xlsx,
-                                            file_name= new_file_name)
+                st.markdown('---')
+                st.write('Preview the new data')
+                st.info('Please scroll to the right to see the newly created columns')
+                st.write(filled_data)
+                st.caption("<NA> means there is no value in the cell")
+
+
+                # Formatting the new file name
+                today = datetime.today().strftime("%Y%m%d_%H%M")+'_'
+                new_file_name = 'Time Formatted_' + today + st.session_state.file_name 
+                # output the excel file and let the user download
+                sheet_list = ['Time Formatted Data', 'Raw Data']
+                df_xlsx = f.dfs_to_excel([filled_data, raw_data], sheet_list)
+                st.download_button(label='📥 Download Current Result 📥',
+                                                data=df_xlsx,
+                                                file_name= new_file_name)
