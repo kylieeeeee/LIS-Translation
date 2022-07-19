@@ -28,7 +28,7 @@ with st.expander('Click here to view the instructions'):
 
 ## Section: Upload the excel file
 st.header('Upload Raw Data')
-uploaded_file = st.file_uploader("Select the file which needs translation:")
+uploaded_file = st.file_uploader("Select the file which needs translation:", type=['xlsx'])
 st.info('Please only upload excel file.')
 
 
