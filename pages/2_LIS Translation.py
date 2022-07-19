@@ -37,7 +37,7 @@ with st.expander('Click here to view the instructions'):
 
 ## Section 1: Upload the excel file that need translation
 st.header('Upload Raw Data')
-uploaded_file = st.file_uploader("Select the file which needs translation:")
+uploaded_file = st.file_uploader("Select the file which needs translation:", type=['xlsx'])
 st.info('Please only upload excel file.')
 
 # list to save all LIS_Data objects
@@ -219,7 +219,7 @@ if st.button('Click here to start matching'):
                 result_df.loc[index,'Similar Test'] = match_result[row[LIS_column]]['SimilarTest']
                 result_df.loc[index,'Material'] = match_result[row[LIS_column]]['Material']
                 result_df.loc[index, 'Assay Name'] = match_result[row[LIS_column]]['AssayName']
-                result_df.loc[index, 'Confidence Score'] = round(match_result[row[LIS_column]]['ConfidenceScore'],3)
+                result_df.loc[index, 'Confidence Score'] = round(match_result[row[LIS_column]]['ConfidenceScore'],2)
             else:
                 result_df.drop(index, axis=0, inplace = True)
             st.session_state.result_df = result_df
@@ -231,7 +231,8 @@ if st.button('Click here to start matching'):
         # Received Time/Verified Time/Lab/Data Origin
         graph_data = result_df.copy()
         graph_data = graph_data.assign(Assay_Name = graph_data['Assay Name'].str.split(','))
-        graph_data = graph_data.explode('Assay_Name').drop(['Assay Name'], axis=1)
+        graph_data = graph_data.explode('Assay_Name')
+        graph_data.drop(['Assay Name'], axis=1, inplace=True)
         graph_data = graph_data.rename(columns = {'Assay_Name': 'Assay Name'})
 
 
@@ -250,7 +251,7 @@ if st.button('Click here to start matching'):
             st.caption("<NA> means there is no value in the cell")
             st.markdown('---')
             st.write('The result data with translation and confidence score')
-            st.dataframe(result_df.style.format({'Confidence Score': '{:.2f}'}))
+            st.dataframe(result_df)
             st.caption("<NA> means there is no value in the cell")
             st.markdown('---')
             st.write('The 5 column workseet')
