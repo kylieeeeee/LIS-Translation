@@ -46,71 +46,68 @@ if 'list_of_LIS' not in st.session_state:
     st.session_state.list_of_LIS = list_of_LIS
 
 if uploaded_file is not None:
-    try:
-        # get the file name of raw data
-        st.session_state.file_name = uploaded_file.name
-        LIS_file = pd.ExcelFile(uploaded_file)
-        all_sheets = ['(Not Selected Yet)'] + LIS_file.sheet_names
-        
-        ## User select the sheet name that needs translation
-        selected_sheet = st.selectbox('Select the sheet with raw data:', all_sheets)
+    # get the file name of raw data
+    st.session_state.file_name = uploaded_file.name
+    LIS_file = pd.ExcelFile(uploaded_file)
+    all_sheets = ['(Not Selected Yet)'] + LIS_file.sheet_names
+    
+    ## User select the sheet name that needs translation
+    selected_sheet = st.selectbox('Select the sheet with raw data:', all_sheets)
 
-        ## to read just one sheet to dataframe and display the sheet:
-        if selected_sheet != '(Not Selected Yet)':
-            LIS_sheet = pd.read_excel(LIS_file, sheet_name = selected_sheet)
+    ## to read just one sheet to dataframe and display the sheet:
+    if selected_sheet != '(Not Selected Yet)':
+        LIS_sheet = pd.read_excel(LIS_file, sheet_name = selected_sheet)
+        st.session_state.raw_data = LIS_sheet
+        with st.expander("Click here to check the file you upoaded"):
+            st.write("Number of observations: " + str(len(LIS_sheet)))
+            st.write("Here are the first 10 rows of raw data")
+            st.write(LIS_sheet.head(10))
+            st.caption("<NA> means there is no value in the cell")
+
+
+        all_columns = ['(Not Selected Yet)'] + list(LIS_sheet.columns)
+        ID_column = st.selectbox("Select the column for patient ID", all_columns)
+        if ID_column != '(Not Selected Yet)':
+            st.session_state.ID_column = ID_column
+            if LIS_sheet[ID_column].isna().sum() > 0:
+                st.warning('WARNING: There are missing patient ID in this data.  Rows without patient ID will be dropped durning translation.')
+            LIS_sheet[ID_column] = LIS_sheet[ID_column].astype(str)
             st.session_state.raw_data = LIS_sheet
-            with st.expander("Click here to check the file you upoaded"):
-                st.write("Number of observations: " + str(len(LIS_sheet)))
-                st.write("Here are the first 10 rows of raw data")
-                st.write(LIS_sheet.head(10))
-                st.caption("<NA> means there is no value in the cell")
 
+        test_name_column = st.selectbox('Select the column for LIS test names', all_columns)
+        if test_name_column != '(Not Selected Yet)':
+            st.session_state.test_name_column = test_name_column
+            if LIS_sheet[test_name_column].isna().sum() > 0:
+                st.warning('WARNING: There are missing LIS test names in this data.  Rows without LIS test name will be dropped durning translation.')
 
-            all_columns = ['(Not Selected Yet)'] + list(LIS_sheet.columns)
-            ID_column = st.selectbox("Select the column for patient ID", all_columns)
-            if ID_column != '(Not Selected Yet)':
-                st.session_state.ID_column = ID_column
-                if LIS_sheet[ID_column].isna().sum() > 0:
-                    st.warning('WARNING: There are missing patient ID in this data.  Rows without patient ID will be dropped durning translation.')
-                LIS_sheet[ID_column] = LIS_sheet[ID_column].astype(str)
-                st.session_state.raw_data = LIS_sheet
+        # Let user select the columns for 5 columns worksheet
+        # Patient_ID	Priority	TimeStamp	TestName	Material
+        column_options = st.multiselect(
+        'Select up to 3 column names for the 5 column worksheet', LIS_sheet.columns)
+        st.info('Suggestion: Patient_ID, Priority, TimeStamp')
+        if len(column_options) > 3:
+            st.warning("You can only select 3 columns at most.")
+        st.session_state.columns_for_5 = column_options
 
-            test_name_column = st.selectbox('Select the column for LIS test names', all_columns)
-            if test_name_column != '(Not Selected Yet)':
-                st.session_state.test_name_column = test_name_column
-                if LIS_sheet[test_name_column].isna().sum() > 0:
-                    st.warning('WARNING: There are missing LIS test names in this data.  Rows without LIS test name will be dropped durning translation.')
+        if st.button('📤 Upload Raw Data'):
+            # create LIS objects for each row
+            try:
+                for i in range(len(LIS_sheet)):
+                    patient_id = LIS_sheet[ID_column][i]
+                    test_name = LIS_sheet[test_name_column][i]
+                    # only save rows with test names
+                    if (type(test_name) == str):
+                        tmp = LIS_Data(patient_id, test_name)
+                        list_of_LIS.append(tmp)
+                        st.session_state.list_of_LIS = list_of_LIS
+                st.success('🎉 File uploaded successfully')
 
-            # Let user select the columns for 5 columns worksheet
-            # Patient_ID	Priority	TimeStamp	TestName	Material
-            column_options = st.multiselect(
-            'Select up to 3 column names for the 5 column worksheet', LIS_sheet.columns)
-            st.info('Suggestion: Patient_ID, Priority, TimeStamp')
-            if len(column_options) > 3:
-                st.warning("You can only select 3 columns at most.")
-            st.session_state.columns_for_5 = column_options
+            except AttributeError:
+                st.error("🚨 There are invalid test names")
 
-            if st.button('📤 Upload Raw Data'):
-                # create LIS objects for each row
-                try:
-                    for i in range(len(LIS_sheet)):
-                        patient_id = LIS_sheet[ID_column][i]
-                        test_name = LIS_sheet[test_name_column][i]
-                        # only save rows with test names
-                        if (type(test_name) == str):
-                            tmp = LIS_Data(patient_id, test_name)
-                            list_of_LIS.append(tmp)
-                            st.session_state.list_of_LIS = list_of_LIS
-                    st.success('🎉 File uploaded successfully')
+            except KeyError:
+                st.warning("🚨 You haven't selected the column for patient ID or LIS test name")
 
-                except AttributeError:
-                    st.error("🚨 There are invalid test names")
-
-                except KeyError:
-                    st.warning("🚨 You haven't selected the column for patient ID or LIS test name")
-
-    except ValueError:
-        st.error("🚨The file you upload is not an Excel file (.xlsx)")
     
 #=======================================================================================================#
 # User select the threshold
