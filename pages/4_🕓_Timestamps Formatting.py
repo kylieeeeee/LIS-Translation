@@ -48,7 +48,13 @@ if uploaded_file is not None:
     if selected_sheet != '(Not Selected Yet)':
         # Read the data in as string
         raw_data = pd.read_excel(LIS_file, sheet_name = selected_sheet, dtype=str)
-        
+
+        with st.expander("Click here to check the file you upoaded"):
+            st.write("Number of observations: " + str(len(raw_data)))
+            st.write("Here are the first 10 rows of raw data")
+            st.write(raw_data.head(10))
+            st.caption("<NA> means there is no value in the cell")
+
         all_columns = ['(Not Selected Yet)'] + list(raw_data.columns)
         ID_column = st.selectbox("Select the column for patient ID", all_columns)
 
@@ -57,12 +63,6 @@ if uploaded_file is not None:
             if raw_data[ID_column].isna().sum() > 0:
                 st.warning('WARNING: There are missing patient ID in this data.  Rows without patient ID will be dropped durning translation.')
             st.session_state.raw_data = raw_data
-
-            with st.expander("Click here to check the file you upoaded"):
-                st.write("Number of observations: " + str(len(raw_data)))
-                st.write("Here are the first 10 rows of raw data")
-                st.write(raw_data.head(10))
-                st.caption("<NA> means there is no value in the cell")
 
 
             st.markdown('---')
@@ -79,17 +79,17 @@ if uploaded_file is not None:
                                             Multiple selections are allowed", raw_data.columns)
                 st.session_state.datetime_columns = datetime_columns
                 
-                # fill in missing dates
-                datetime_columns = st.session_state.datetime_columns
-                ID_column = st.session_state.ID_column
-                filled_data = st.session_state.filled_data
-                filled_data[datetime_columns] = filled_data.groupby(ID_column)[datetime_columns].ffill().bfill()
-
-                # drop the rows which there are missing dates
-                filled_data.dropna(subset = datetime_columns, how='any', inplace = True)
-                st.session_state.filled_data = filled_data
-
                 if len(datetime_columns) > 0:
+                    # fill in missing dates
+                    datetime_columns = st.session_state.datetime_columns
+                    ID_column = st.session_state.ID_column
+                    filled_data = st.session_state.filled_data
+                    filled_data[datetime_columns] = filled_data.groupby(ID_column)[datetime_columns].ffill().bfill()
+
+                    # drop the rows which there are missing dates
+                    filled_data.dropna(subset = datetime_columns, how='any', inplace = True)
+                    st.session_state.filled_data = filled_data
+
                     # select delimiter
                     delimiter = st.selectbox('Select the delimiter that separates date and time in timestamp columns',
                                     ('Please Select', 'Space', '@', '_', ';'))
@@ -109,7 +109,7 @@ if uploaded_file is not None:
                                 date_col = col + '__Date'
                                 time_col = col + '__Time'
                                 filled_data[date_col] = filled_data[col].apply(lambda dt: dt.date())
-                                filled_data[time_col] = filled_data[col].apply(lambda dt: dt.time())
+                                filled_data[time_col] = filled_data[col].apply(lambda dt: str(dt.time()))
                                 
                             except parser.ParserError:
                                 st.error('ERROR: Please make sure you select the correct delimiter for column '+ col)
@@ -124,37 +124,35 @@ if uploaded_file is not None:
                     Multiple selections are allowed', raw_data.columns)
                 st.session_state.time_columns = time_columns
 
-                # fill in missing dates
-                date_columns = st.session_state.date_columns
-                time_columns = st.session_state.time_columns
-                ID_column = st.session_state.ID_column
-                filled_data = st.session_state.filled_data
-                filled_data[date_columns] = filled_data.groupby(ID_column)[date_columns].ffill().bfill()
-                filled_data[time_columns] = filled_data.groupby(ID_column)[time_columns].ffill().bfill()
+                if (len(date_columns) > 0) and (len(time_columns) > 0):
+                    # fill in missing dates
+                    date_columns = st.session_state.date_columns
+                    time_columns = st.session_state.time_columns
+                    ID_column = st.session_state.ID_column
+                    filled_data = st.session_state.filled_data
+                    
+                    filled_data[date_columns] = filled_data.groupby(ID_column)[date_columns].ffill().bfill()
+                    filled_data[time_columns] = filled_data.groupby(ID_column)[time_columns].ffill().bfill()
 
-                # drop the rows which there are missing dates
-                filled_data.dropna(subset=time_columns, how='any', inplace = True)
-                st.session_state.filled_data = filled_data
-
-                # format the date columns:
-                if len(date_columns) > 0:
-                    try:
-                        for col in date_columns:
+                    # drop the rows which there are missing dates
+                    filled_data.dropna(subset=time_columns, how='any', inplace = True)
+                    st.session_state.filled_data = filled_data
+                    
+                    # formate date columns
+                    for col in date_columns:
+                        try:
                             filled_data[col] = filled_data[col].apply(lambda d: parser.parse(d).date())
                             st.session_state.filled_data = filled_data
-                    except parser.ParserError:
-                        st.error("ERROR: There is unknown format of date that cannot be parsed by the program.")
+                        except parser.ParserError:
+                            st.error("ERROR: There is unknown format of date that cannot be parsed by the program.")
 
-                # format the time columns:
-                for col in time_columns:
-                    try:
-                        filled_data[col] = filled_data[col].apply(lambda t: str(parser.parse(t).time()))
-                        st.session_state.filled_data = filled_data
-                    except parser.ParserError:
-                        st.error("ERROR: There is unknown format of time that cannot be parsed by the program.")
-
-
-            # calculate turn around time
+                    # format the time columns:
+                    for col in time_columns:
+                        try:
+                            filled_data[col] = filled_data[col].apply(lambda t: str(parser.parse(t).time()))
+                            st.session_state.filled_data = filled_data
+                        except parser.ParserError:
+                            st.error("ERROR: There is unknown format of time that cannot be parsed by the program.")
 
 
             st.markdown('---')
@@ -168,10 +166,10 @@ if uploaded_file is not None:
             st.caption('Please scroll to the right to see the newly created columns')
             st.caption("<NA> means there is no value in the cell")
 
-
             # Formatting the new file name
             today = datetime.today().strftime("%Y%m%d_%H%M")+'_'
             new_file_name = 'Time Formatted_' + today + st.session_state.file_name 
+
             # output the excel file and let the user download
             sheet_list = ['Time Formatted Data', 'Raw Data']
             df_xlsx = f.dfs_to_excel([filled_data, raw_data], sheet_list)
