@@ -1,8 +1,10 @@
+from lib2to3.pgen2.parse import ParseError
 import streamlit as st
 import pandas as pd
 import numpy as np
 import functions as f
 from datetime import datetime
+from dateutil import parser
 
 st.set_page_config(page_title="LIS Translation Tool", page_icon='🗃️', 
                 layout="wide",
@@ -44,6 +46,7 @@ if uploaded_file is not None:
 
     ## to read just one sheet to dataframe and display the sheet:
     if selected_sheet != '(Not Selected Yet)':
+        # Read the data in as string
         raw_data = pd.read_excel(LIS_file, sheet_name = selected_sheet, dtype=str)
         
         all_columns = ['(Not Selected Yet)'] + list(raw_data.columns)
@@ -53,7 +56,6 @@ if uploaded_file is not None:
             st.session_state.ID_column = ID_column
             if raw_data[ID_column].isna().sum() > 0:
                 st.warning('WARNING: There are missing patient ID in this data.  Rows without patient ID will be dropped durning translation.')
-            raw_data[ID_column] = raw_data[ID_column].astype(str)
             st.session_state.raw_data = raw_data
 
             with st.expander("Click here to check the file you upoaded"):
@@ -64,70 +66,115 @@ if uploaded_file is not None:
 
 
             st.markdown('---')
-            # select the timestamp columns
-            time_columns = st.multiselect("Select the columns of timestamps that need formatting. ", raw_data.columns)
-            st.session_state.time_columns = time_columns
-            st.info('Please only select the timestamp columns which include **BOTH** date and time.\
-                **Multiple selections are allowed**.')
-
-            # input/choose delimiter
-            delimiter = st.radio('Select the delimiter that separate date and time in a timestamp column',
-                            ('Space', '@', '_'))
-            if delimiter == 'Space':
-                delimiter = ' '
-
-            # fill in missing dates
+            # select the presentation of timestamps: date and time are in the same or separate columns
+            presentation = st.selectbox('Are the date and time displayed in one or separate columns for the timestamps in your data?',
+                        ('Please Select', 'Separate Columns', 'One Column'))
+            st.warning('A row will be dropped if there are any missing timestamps in the columns you selected')
             filled_data = raw_data.copy()
-            time_columns = st.session_state.time_columns
-            ID_column = st.session_state.ID_column
-            
-            if len(time_columns) > 0:
-                filled_data[time_columns] = filled_data.groupby(ID_column)[time_columns].ffill().bfill()
+            st.session_state.filled_data = filled_data
+
+            if presentation == 'One Column':
+                # select the timestamp columns
+                datetime_columns = st.multiselect("Please select the columns of timestamps that need formatting.\
+                                            Multiple selections are allowed", raw_data.columns)
+                st.session_state.datetime_columns = datetime_columns
+                
+                # fill in missing dates
+                datetime_columns = st.session_state.datetime_columns
+                ID_column = st.session_state.ID_column
+                filled_data = st.session_state.filled_data
+                filled_data[datetime_columns] = filled_data.groupby(ID_column)[datetime_columns].ffill().bfill()
+
+                # drop the rows which there are missing dates
+                filled_data.dropna(subset = datetime_columns, how='any', inplace = True)
                 st.session_state.filled_data = filled_data
 
-                # separate the date and time
+                if len(datetime_columns) > 0:
+                    # select delimiter
+                    delimiter = st.selectbox('Select the delimiter that separates date and time in timestamp columns',
+                                    ('Please Select', 'Space', '@', '_', ';'))
+                    if delimiter == 'Space':
+                        delimiter = ' '
+                    st.info('Please make sure all the timestamp columns you selected are using the same delimiter.')
+                    
+                    if delimiter != 'Please Select':
+                        for col in datetime_columns:
+                            #replace special delimiter to a space
+                            filled_data[col] = filled_data[col].apply(lambda d: d.replace(delimiter, ' '))
+                            st.session_state.filled_data = filled_data
+
+                            try:
+                                #parse the dates into standardized format
+                                filled_data[col] = filled_data[col].apply(lambda d: parser.parse(d))
+                                date_col = col + '__Date'
+                                time_col = col + '__Time'
+                                filled_data[date_col] = filled_data[col].apply(lambda dt: dt.date())
+                                filled_data[time_col] = filled_data[col].apply(lambda dt: dt.time())
+                                
+                            except parser.ParserError:
+                                st.error('ERROR: Please make sure you select the correct delimiter for column '+ col)
+                    
+
+            elif presentation == 'Separate Columns':
+                # Select the date columns
+                date_columns = st.multiselect('Please select the columns of test dates.  \
+                    Multiple selections are allowed', raw_data.columns)
+                st.session_state.date_columns = date_columns
+                time_columns = st.multiselect('Please select the columns of test times.  \
+                    Multiple selections are allowed', raw_data.columns)
+                st.session_state.time_columns = time_columns
+
+                # fill in missing dates
+                date_columns = st.session_state.date_columns
+                time_columns = st.session_state.time_columns
+                ID_column = st.session_state.ID_column
+                filled_data = st.session_state.filled_data
+                filled_data[date_columns] = filled_data.groupby(ID_column)[date_columns].ffill().bfill()
+                filled_data[time_columns] = filled_data.groupby(ID_column)[time_columns].ffill().bfill()
+
+                # drop the rows which there are missing dates
+                filled_data.dropna(subset=time_columns, how='any', inplace = True)
+                st.session_state.filled_data = filled_data
+
+                # format the date columns:
+                if len(date_columns) > 0:
+                    try:
+                        for col in date_columns:
+                            filled_data[col] = filled_data[col].apply(lambda d: parser.parse(d).date())
+                            st.session_state.filled_data = filled_data
+                    except parser.ParserError:
+                        st.error("ERROR: There is unknown format of date that cannot be parsed by the program.")
+
+                # format the time columns:
                 for col in time_columns:
                     try:
-                        # see if the time column includes both date and time
-                        if len(filled_data[col][0]) < 11:
-                            st.warning('The column you selected does not include BOTH date and time')
-                        # check if the delimiter is correct
-                        elif filled_data[col][0].find(delimiter) == -1:
-                            st.warning('The selected delimiter is not found in the timestamps.')
-                        else:
-                            # create the new column name                       
-                            date_col = col + '__Date'
-                            time_col = col + '__Time'
-                            filled_data[[date_col, time_col]] = filled_data[col].str.split(delimiter, expand = True)
-
-                            # # check the data type of the timestamp column
-                            # if filled_data[col].dtypes == 'object':
-                            #     filled_data[[date_col, time_col]] = filled_data[col].str.split(delimiter, expand = True)
-                            #     st.session_state.filled_data = filled_data
-                            # elif filled_data[col].dtypes == 'datetime64[ns]':
-                            #     filled_data[date_col] = filled_data[col].apply(lambda x: x.strftime("%Y/%m/%d"))
-                            #     filled_data[time_col] = filled_data[col].apply(lambda x: x.strftime("%H:%M:%S"))
-                            # else:
-                            #     st.write(filled_data[col].dtypes)
-                            #     st.warning('Unknown data type')
-
-                    except ValueError:
-                        st.error('At least one of the columns you selected does not include **BOTH** date and time')
+                        filled_data[col] = filled_data[col].apply(lambda t: str(parser.parse(t).time()))
+                        st.session_state.filled_data = filled_data
+                    except parser.ParserError:
+                        st.error("ERROR: There is unknown format of time that cannot be parsed by the program.")
 
 
-                st.markdown('---')
-                st.write('Preview the new data')
-                st.info('Please scroll to the right to see the newly created columns')
-                st.write(filled_data)
-                st.caption("<NA> means there is no value in the cell")
+            # calculate turn around time
 
 
-                # Formatting the new file name
-                today = datetime.today().strftime("%Y%m%d_%H%M")+'_'
-                new_file_name = 'Time Formatted_' + today + st.session_state.file_name 
-                # output the excel file and let the user download
-                sheet_list = ['Time Formatted Data', 'Raw Data']
-                df_xlsx = f.dfs_to_excel([filled_data, raw_data], sheet_list)
-                st.download_button(label='📥 Download Current Result 📥',
-                                                data=df_xlsx,
-                                                file_name= new_file_name)
+            st.markdown('---')
+            st.markdown('#### Preview the formatted data')
+            st.markdown("""
+            - **The program would use the current datetime to make up for any missing parts of the timestamp**
+            - For example, in the parsing of '12/20' , which got parsed as 2022-12-20 as 2022 is the current year
+            - If a time is not supplied then 00:00:00 is used
+            """)
+            st.write(filled_data)
+            st.caption('Please scroll to the right to see the newly created columns')
+            st.caption("<NA> means there is no value in the cell")
+
+
+            # Formatting the new file name
+            today = datetime.today().strftime("%Y%m%d_%H%M")+'_'
+            new_file_name = 'Time Formatted_' + today + st.session_state.file_name 
+            # output the excel file and let the user download
+            sheet_list = ['Time Formatted Data', 'Raw Data']
+            df_xlsx = f.dfs_to_excel([filled_data, raw_data], sheet_list)
+            st.download_button(label='📥 Download Current Result 📥',
+                                            data=df_xlsx,
+                                            file_name= new_file_name)
