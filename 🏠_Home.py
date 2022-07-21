@@ -8,7 +8,7 @@ st.set_page_config(page_title="LIS Translation Tool", page_icon='🗃️',
      })
 
 
-st.sidebar.info('Select features above')
+st.sidebar.info('Select the pages above')
 
 st.markdown("""
 # 🏠Guide for LIS Translation Tool
@@ -23,8 +23,14 @@ An online tool for strategic workflow consultants to translate the raw LIS file 
 5. Visit the **Update Dictionary** page to upload your revised dictionary.
 6. Go to **LIS Tranlation** page and redo the translation.
 
-
 ## Detailed guide for each page
+Select the tabs below to see the detailed instructions for each page.
+""")
+
+
+tab1, tab2, tab3, tab4 = st.tabs(['LIS Translation', 'Upload Dictionary', 'Timestamps Formatting', 'View / Download Base Dictionary']) 
+
+tab1.markdown("""
 ### LIS Translation
 Translate the LIS test names in raw data based on calculating the string similarity of LIS names to the test names in our base dictionary
 #### Instructions
@@ -36,11 +42,10 @@ Translate the LIS test names in raw data based on calculating the string similar
 6. Select the desired threshold for similarity score with the slide bar. The default score is 80.
 7. (Optional) If you have uploaded your own dictionary at **Update Dictionary** page, please check the box.
 8. After the result file is generated, the **Download Cuttent Result** button will show up. Click the button to download the result.
-
-
 ---
+""")
 
-
+tab2.markdown("""
 ### Update Dictionary
 The page for SWC to upload their own dictionary or the new panel definiton that revised by SWC.
 
@@ -57,11 +62,11 @@ The page for SWC to upload their own dictionary or the new panel definiton that 
 1. Select your dictionary file. **ONLY EXCEL files are accepted**
 2. Select the sheet that contains your dictionary.
 3. Click the **Upload Dictionary** button to upload.
-
-
 ---
+""")
 
 
+tab3.markdown("""
 ### Timestamps Formatting
 The page for SWC to fill in the missing timestamps in the raw data and format the timestamps into separate columns for data and time respectively.
 
@@ -72,5 +77,22 @@ The page for SWC to fill in the missing timestamps in the raw data and format th
 4. Select the timestamp columns which you want to format.
 5. Select the delimiter that the raw file is using to separate data and time in the columns
 6. Preview the formatted data below. If the result is correct, click **Download Current Result** to download the formatted file.
+---
+""")
+
+tab4.markdown("""
+## View / Download Base Dictionary
+This page is for SWC to view the base dictionary which this application is using to do the LIS translation.
+
 
 """)
+
+
+st.markdown("""
+## Contact Us
+If you have any problem with this application, please reach out to
+- [Kylie Hsieh](mailto:han-ju.hsieh@roche.com)
+- [Suketu Patel](mailto:suketu.patel@roche.com)
+- [Drew Buffum](mailto:drew.buffum@roche.com)
+""")
+
