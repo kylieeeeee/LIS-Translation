@@ -105,14 +105,18 @@ if uploaded_file is not None:
 
                             try:
                                 #parse the dates into standardized format
-                                filled_data[col] = filled_data[col].apply(lambda d: parser.parse(d))
+                                if delimiter == '@': # for the special format "OCT 13,2020@12:23"
+                                    # replace the , so it can be parsed by the parser
+                                    filled_data[col] = filled_data[col].apply(lambda d: d.replace(',', ' '))
+
+                                filled_data[col] = filled_data[col].apply(lambda dt: parser.parse(dt))
                                 date_col = col + '__Date'
                                 time_col = col + '__Time'
                                 filled_data[date_col] = filled_data[col].apply(lambda dt: dt.date())
                                 filled_data[time_col] = filled_data[col].apply(lambda dt: str(dt.time()))
-                                
+                            
                             except parser.ParserError:
-                                st.error('ERROR: Please make sure you select the correct delimiter for column '+ col)
+                                 st.error('ERROR: Please make sure you select the correct delimiter for column '+ col)
                     
 
             elif presentation == 'Separate Columns':
@@ -155,6 +159,9 @@ if uploaded_file is not None:
                             st.error("ERROR: There is unknown format of time that cannot be parsed by the program.")
 
 
+            # calculate turn around time
+
+
             st.markdown('---')
             st.markdown('#### Preview the formatted data')
             st.markdown("""
@@ -165,6 +172,7 @@ if uploaded_file is not None:
             st.write(filled_data)
             st.caption('Please scroll to the right to see the newly created columns')
             st.caption("<NA> means there is no value in the cell")
+
 
             # Formatting the new file name
             today = datetime.today().strftime("%Y%m%d_%H%M")+'_'
