@@ -54,9 +54,9 @@ if uploaded_file is not None:
     ## User select the sheet name that needs translation
     selected_sheet = st.selectbox('Select the sheet with raw data:', all_sheets)
 
-    ## to read just one sheet to dataframe and display the sheet:
+    ## to read the selected sheet to dataframe and display the sheet:
     if selected_sheet != '(Not Selected Yet)':
-        LIS_sheet = pd.read_excel(LIS_file, sheet_name = selected_sheet)
+        LIS_sheet = pd.read_excel(LIS_file, sheet_name = selected_sheet, dtype = str)
         st.session_state.raw_data = LIS_sheet
         with st.expander("Click here to check the file you upoaded"):
             st.write("Number of observations: " + str(len(LIS_sheet)))
