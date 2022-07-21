@@ -56,8 +56,9 @@ if uploaded_file is not None:
 
     ## to read the selected sheet to dataframe and display the sheet:
     if selected_sheet != '(Not Selected Yet)':
-        LIS_sheet = pd.read_excel(LIS_file, sheet_name = selected_sheet, dtype = str)
+        LIS_sheet = pd.read_excel(LIS_file, sheet_name = selected_sheet, dtype=str)
         st.session_state.raw_data = LIS_sheet
+
         with st.expander("Click here to check the file you upoaded"):
             st.write("Number of observations: " + str(len(LIS_sheet)))
             st.write("Here are the first 10 rows of raw data")
@@ -126,11 +127,13 @@ st.write("Have you uploaded your own dictionary at the **Upload Dictionary** pag
 upload = st.checkbox('Yes, I uploaded a dictionary.')
 st.info('If this is the first time translating this file or you did not upload your dictionary,\
          please **DO NOT CHECK** the box.')
-if upload:
-    newDict = st.session_state.newDict
-    panelDict.update(newDict)
-    st.session_state.panelDict = panelDict
-
+try:
+    if upload:
+        newDict = st.session_state.newDict
+        panelDict.update(newDict)
+        st.session_state.panelDict = panelDict
+except AttributeError:
+    st.error("ERROR: You did not upload your dictionary. Please visit **Upload Dictionary** page to upload your dictionary.")
 
 # Start matching
 if st.button('Click here to start matching'):
