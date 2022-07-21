@@ -37,7 +37,7 @@ st.download_button(label='📥 Download Base Dictionary 📥',
 
 st.markdown("""
 ---
-### Please fill out this google form if you find out a LIS test should be included in the base dictionary, /
+### Please fill out this google form if you find out a LIS test should be included in the base dictionary, 
 or there are wrong translation for some tests in the base dictionary.
 *We will update the base dictionary as soon as possible.*
 - [Google form](https://forms.gle/RedT4n5e1PZvAweXA)
