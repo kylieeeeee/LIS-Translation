@@ -81,7 +81,7 @@ The page for SWC to fill in the missing timestamps in the raw data and format th
 """)
 
 tab4.markdown("""
-## View / Download Base Dictionary
+### View / Download Base Dictionary
 This page is for SWC to view the base dictionary which this application is using to do the LIS translation.
 
 
