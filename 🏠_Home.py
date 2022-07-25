@@ -28,7 +28,7 @@ Select the tabs below to see the detailed instructions for each page.
 """)
 
 
-tab1, tab2, tab3, tab4 = st.tabs(['LIS Translation', 'Upload Dictionary', 'Timestamps Formatting', 'View / Download Base Dictionary']) 
+tab1, tab2, tab3, tab4, tab5 = st.tabs(['LIS Translation', 'Upload Dictionary', 'Timestamps Formatting', 'View / Download Base Dictionary', 'Summary Report']) 
 
 tab1.markdown("""
 ### LIS Translation
@@ -83,15 +83,23 @@ The page for SWC to fill in the missing timestamps in the raw data and format th
 tab4.markdown("""
 ### View / Download Base Dictionary
 This page is for SWC to view the base dictionary which this application is using to do the LIS translation.
-
-
+- SWC can either view the base dictionary on the web page or clicke the **Download Base Dictionary** button to download the excel file. 
+---
 """)
 
+tab5.markdown("""
+### Summary Report
+This page is for SWC to have a clear view about the aggregated result of customer LIS data.
+#### Instructions
+1. Select the raw data which timestamps are standardized by this application. **ONLY EXCEL files are accpeted**
+2. Select the sheet name which contains the formatted timestamp data.
+3. Select the column name for *Test Name*, *Test Arrival Date*, *Test Arrival Time* respectively.
+4. Click **Generate Aggregated Report** button to view the result.
+""")
 
 st.markdown("""
 ## Contact Us
 If you have any problem with this application, please reach out to
-- [Kylie Hsieh](mailto:han-ju.hsieh@roche.com)
 - [Suketu Patel](mailto:suketu.patel@roche.com)
 - [Drew Buffum](mailto:drew.buffum@roche.com)
 """)
