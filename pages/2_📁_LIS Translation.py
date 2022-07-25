@@ -133,7 +133,7 @@ try:
         panelDict.update(newDict)
         st.session_state.panelDict = panelDict
 except AttributeError:
-    st.error("ERROR: You did not upload your dictionary. Please visit **Upload Dictionary** page to upload your dictionary.")
+    st.error("ERROR: You did not upload your dictionary. Please visit **Upload Dictionary** page to upload your dictionary or uncheck the box.")
 
 # Start matching
 if st.button('Click here to start matching'):
