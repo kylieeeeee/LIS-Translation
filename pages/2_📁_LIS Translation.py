@@ -20,7 +20,7 @@ st.set_page_config(page_title="LIS Translation Tool", page_icon='🗃️',
 
 
 st.title('🗃️LIS File Translation Tool🧰⚙️')
-st.header('LIS Translation')
+st.header('📁LIS Translation')
 st.subheader('Use the similarity scores to find the most similar LIS test name in the dictionary and translate into Roche Assay names')
 with st.expander('Click here to view the instructions'):
     st.markdown("""
