@@ -15,7 +15,7 @@ st.set_page_config(page_title="LIS Translation Tool", page_icon='🗃️',
 
 
 st.title('🗃️LIS File Translation Tool🧰⚙️')
-st.header('Timestamps Formatting')
+st.header('📆Timestamps Formatting')
 st.subheader('Fill in the missing timestamps and format the date and time')
 with st.expander('Click here to view the instructions'):
     st.markdown("""
