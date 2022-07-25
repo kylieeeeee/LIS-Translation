@@ -12,8 +12,8 @@ st.set_page_config(page_title="LIS Translation Tool", page_icon='🗃️',
      })
 
 st.title('🗃️LIS File Translation Tool🧰⚙️')
-st.header('Summary Report')
-st.subheader('Please standardize the timestamps before using this tool.')
+st.header('📊Summary Report')
+st.info('Please standardize the timestamps before using this tool.')
 
 
 # function
