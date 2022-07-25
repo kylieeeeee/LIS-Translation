@@ -11,7 +11,7 @@ st.set_page_config(page_title="LIS Translation Tool", page_icon='🗃️',
 
 
 st.title('🗃️LIS File Translation Tool🧰⚙️')
-st.header('View and Download Base Dictionary')
+st.header('👀View and Download Base Dictionary')
 
 base_dict = f.load_json('data/LIS DB.json')
 base_dict = pd.DataFrame.from_dict(base_dict, orient='index').reset_index(drop = False)
