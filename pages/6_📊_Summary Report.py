@@ -15,6 +15,14 @@ st.title('🗃️LIS File Translation Tool🧰⚙️')
 st.header('📊Summary Report')
 st.info('Please standardize the timestamps before using this tool.')
 
+with st.expander('Click here to view the instructions'):
+    st.markdown("""
+    #### Instructions
+1. Select the raw data which timestamps are standardized by this application. **ONLY EXCEL files are accpeted**
+2. Select the sheet name which contains the formatted timestamp data.
+3. Select the column name for *Test Name*, *Test Arrival Date*, *Test Arrival Time* respectively.
+4. Click **Generate Aggregated Report** button to view the result.
+    """)
 
 # function
 def format_date(date: datetime, time: str):
