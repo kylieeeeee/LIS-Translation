@@ -4,7 +4,6 @@ import pandas as pd
 import streamlit as st
 import json
 from io import BytesIO
-from LIS_data import LIS_Data
 import functions as f
 import difflib
 
@@ -16,7 +15,7 @@ st.set_page_config(page_title="LIS Translation Tool", page_icon='🗃️',
      })
 
 st.title('🗃️LIS File Translation Tool🧰⚙️')
-st.header('📚Upload your dictionary')
+st.header('Upload your dictionary')
 
 with st.expander('Click here to view the instructions'):
     st.markdown("""
