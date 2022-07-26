@@ -100,8 +100,8 @@ This page is for SWC to have a clear view about the aggregated result of custome
 
 st.markdown("""
 ## Contact Us
+This application is managed by Roche Healthcare Consulting Business Operations Team.
 If you have any problem with this application, please reach out to
-- [Kylie Hsieh](mailto:han-ju.hsieh@roche.com)
 - [Suketu Patel](mailto:suketu.patel@roche.com)
 - [Drew Buffum](mailto:drew.buffum@roche.com)
 """)
