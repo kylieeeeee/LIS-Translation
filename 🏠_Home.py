@@ -28,9 +28,25 @@ Select the tabs below to see the detailed instructions for each page.
 """)
 
 
-tab1, tab2, tab3, tab4, tab5 = st.tabs(['LIS Translation', 'Upload Dictionary', 'Timestamps Formatting', 'View / Download Base Dictionary', 'Summary Report']) 
+tab1, tab2, tab3, tab4, tab5 = st.tabs(['Timestamps Formatting', 'LIS Translation', 'Upload Dictionary', 'View / Download Base Dictionary', 'Summary Report']) 
+
 
 tab1.markdown("""
+### Timestamps Formatting
+The page for SWC to fill in the missing timestamps in the raw data and format the timestamps into separate columns for data and time respectively.
+
+#### Instructions
+1. Select the file you want to translate. **ONLY EXCEL files are accpeted**
+2. Select the sheet that contains the raw data.
+3. Select the columns for *patient ID*
+4. Select the timestamp columns which you want to format.
+5. Select the delimiter that the raw file is using to separate data and time in the columns
+6. Preview the formatted data below. If the result is correct, click **Download Current Result** to download the formatted file.
+---
+""")
+
+
+tab2.markdown("""
 ### LIS Translation
 Translate the LIS test names in raw data based on calculating the string similarity of LIS names to the test names in our base dictionary
 #### Instructions
@@ -45,7 +61,7 @@ Translate the LIS test names in raw data based on calculating the string similar
 ---
 """)
 
-tab2.markdown("""
+tab3.markdown("""
 ### Update Dictionary
 The page for SWC to upload their own dictionary or the new panel definiton that revised by SWC.
 
@@ -65,20 +81,6 @@ The page for SWC to upload their own dictionary or the new panel definiton that 
 ---
 """)
 
-
-tab3.markdown("""
-### Timestamps Formatting
-The page for SWC to fill in the missing timestamps in the raw data and format the timestamps into separate columns for data and time respectively.
-
-#### Instructions
-1. Select the file you want to translate. **ONLY EXCEL files are accpeted**
-2. Select the sheet that contains the raw data.
-3. Select the columns for *patient ID*
-4. Select the timestamp columns which you want to format.
-5. Select the delimiter that the raw file is using to separate data and time in the columns
-6. Preview the formatted data below. If the result is correct, click **Download Current Result** to download the formatted file.
----
-""")
 
 tab4.markdown("""
 ### View / Download Base Dictionary
