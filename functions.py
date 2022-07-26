@@ -16,6 +16,14 @@ def load_json(file_name):
     return data
 
 
+# Read all sheets in one excel
+@st.cache
+def load_all_sheets(excel_file):
+    df_dict = pd.read_excel(excel_file, sheet_name=None, dtype=str)
+
+    return df_dict
+
+
 # Function to save all dataframes to one single excel
 def dfs_to_excel(df_list, sheet_list): 
     output = BytesIO()
@@ -23,7 +31,7 @@ def dfs_to_excel(df_list, sheet_list):
     for dataframe, sheet in zip(df_list, sheet_list):
         dataframe.to_excel(writer, sheet_name=sheet, startrow=0 , startcol=0, index=False)   
         for column in dataframe:
-            column_length = max(dataframe[column].astype(str).map(len).mean(), len(column))
+            column_length = max(dataframe[column].astype(str).map(len).mean()+10, len(column))
             col_idx = dataframe.columns.get_loc(column)
             writer.sheets[sheet].set_column(col_idx, col_idx, column_length)
 
@@ -33,6 +41,23 @@ def dfs_to_excel(df_list, sheet_list):
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+##### NOT BEEN USED #####
 # Function for getting matched tests
 def get_close_match(panelDict: dict, tests: list, cutoff: float):
     """
