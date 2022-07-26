@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import altair as alt
 from datetime import datetime
+import functions as f
 
 
 st.set_page_config(page_title="LIS Translation Tool", page_icon='🗃️', 
@@ -22,6 +23,8 @@ with st.expander('Click here to view the instructions'):
 2. Select the sheet name which contains the formatted timestamp data.
 3. Select the column name for *Test Name*, *Test Arrival Date*, *Test Arrival Time* respectively.
 4. Click **Generate Aggregated Report** button to view the result.
+5. For each visualization plot, click the three dot icon on the upper-right coner to download the plot.
+6. Click **Download Summary Report** to download the aggregated tables as an Excel file.
     """)
 
 
@@ -43,6 +46,11 @@ st.info('Please only upload excel file.')
 if uploaded_file is not None:
     # get the file name of raw data
     st.session_state.file_name = uploaded_file.name
+
+    # # read in all the sheets in the uploaded excel file
+    # dict_of_df = f.load_all_sheets(uploaded_file)
+    # st.session_state.dict_of_df = dict_of_df
+
     LIS_file = pd.ExcelFile(uploaded_file)
     all_sheets = ['(Not Selected Yet)'] + LIS_file.sheet_names
     
@@ -52,6 +60,7 @@ if uploaded_file is not None:
     ## to read just one sheet to dataframe and display the sheet:
     if selected_sheet != '(Not Selected Yet)':
         # Read the data in as string
+        # raw_data = dict_of_df[selected_sheet]
         raw_data = pd.read_excel(LIS_file, sheet_name = selected_sheet, dtype=str)
 
         with st.expander("Click here to check the file you uploaded"):
@@ -88,7 +97,6 @@ if uploaded_file is not None:
 
                     aggregated_date_hour = df.groupby(['Arrival_Date', 'Arrival_Hour']).count()[test_name_col].reset_index()
                     aggregated_date = df.groupby(['Arrival_Date']).count()[test_name_col].reset_index()
-                    aggregated_hour = df.groupby(['Arrival_Hour']).count()[test_name_col].reset_index()
                     aggregated_week = df.groupby(['Arrival_Weekday']).count()[test_name_col].reset_index()
 
                     # Visualizations
@@ -105,13 +113,7 @@ if uploaded_file is not None:
                             tooltip = [test_name_col]
                     ).interactive()
 
-                    chart3 = alt.Chart(aggregated_hour, title='Number of tests conducted in each hour').mark_line().encode(
-                            alt.X('Arrival_Hour:O', title='Hour'),
-                            alt.Y(test_name_col, title='Number of tests'),
-                            tooltip = [test_name_col]
-                    ).interactive()
-
-                    chart4 = alt.Chart(aggregated_week, title='Number of tests conducted on each day').mark_bar().encode(
+                    chart3 = alt.Chart(aggregated_week, title='Number of tests conducted on each day').mark_bar().encode(
                             alt.Y('Arrival_Weekday:O', title='Day of Week', sort=['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday']),
                             alt.X(test_name_col, title='Number of tests'),
                             tooltip = [test_name_col]
@@ -127,7 +129,7 @@ if uploaded_file is not None:
 
                     st.subheader("There were total " + str(number_of_tests) + " tests conducted between " + start_date + ' and ' + end_date)
                     
-                    tab1, tab2, tab3, tab4 = st.tabs(['Aggregated by arrival date and hour', 'Aggregated by arrival date', 'Aggregated by arrival hour', 'Aggregated by arrival day of week'])
+                    tab1, tab2, tab3 = st.tabs(['Aggregated by arrival date and hour', 'Aggregated by arrival date', 'Aggregated by arrival day of week'])
                     with tab1:
                         col11, col12 = st.columns(2)
                         col11.dataframe(aggregated_date_hour, width=800)
@@ -141,17 +143,29 @@ if uploaded_file is not None:
 
                     with tab3:
                         col31, col32 = st.columns(2)
-                        col31.dataframe(aggregated_hour, width=800)
-                        col32.write(chart3)
-
-                    with tab4:
-                        col41, col42 = st.columns(2)
                         aggregated_week['Arrival_Weekday'] = pd.Categorical(aggregated_week['Arrival_Weekday'], 
                                 categories=['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday', 'Sunday'],
                                 ordered=True)
                         aggregated_week = aggregated_week.sort_values('Arrival_Weekday', ignore_index = True)
-                        col41.dataframe(aggregated_week, width=800)
-                        col42.write(chart4)
+                        col31.dataframe(aggregated_week, width=800)
+                        col32.write(chart3)
+
+
+                    # Download summary report
+                    st.warning("The result file is still generating, please wait until the download button show up...")
+                    # Formatting the new file name
+                    new_file_name = 'Summary for_' + st.session_state.file_name
+                    
+                    dict_of_df = st.session_state.dict_of_df
+                    # output the excel file and let the user download
+                    sheet_name_list = ['Aggregated by date and time', 'Aggregated by date', 'Aggregated by day of week',
+                                'Raw Data'] # + list(dict_of_df.keys())
+                    df_list = [aggregated_date_hour, aggregated_date, aggregated_week, raw_data] # + list(dict_of_df.values())
+                    df_xlsx = f.dfs_to_excel(df_list, sheet_name_list)
+                    st.download_button(label='📥 Download Summary Report 📥',
+                                                    data=df_xlsx,
+                                                    file_name= new_file_name)
+
 
                 except ValueError:
                     st.error('Error: Your timestamps are not standardized. Please visit the **Timestamps Formatting** page to standardize the file before using this function.')
