@@ -96,13 +96,14 @@ This page is for SWC to have a clear view about the aggregated result of custome
 2. Select the sheet name which contains the formatted timestamp data.
 3. Select the column name for *Test Name*, *Test Arrival Date*, *Test Arrival Time* respectively.
 4. Click **Generate Aggregated Report** button to view the result.
+5. For each visualization plot, click the three dot icon on the upper-right coner to download the plot.
+6. Click **Download Summary Report** to download the aggregated tables as an Excel file.
 """)
 
 st.markdown("""
 ## Contact Us
 This application is managed by Roche Healthcare Consulting Business Operations Team.
 If you have any problem with this application, please reach out to
-- [Kylie Hsieh](mailto:han-ju.hsieh@roche.com)
 - [Suketu Patel](mailto:suketu.patel@roche.com)
 - [Drew Buffum](mailto:drew.buffum@roche.com)
 """)
