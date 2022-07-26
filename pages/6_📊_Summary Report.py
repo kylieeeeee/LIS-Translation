@@ -52,7 +52,7 @@ if uploaded_file is not None:
     ## to read just one sheet to dataframe and display the sheet:
     if selected_sheet != '(Not Selected Yet)':
         # Read the data in as string
-        raw_data = pd.read_excel(LIS_file, sheet_name = selected_sheet)
+        raw_data = pd.read_excel(LIS_file, sheet_name = selected_sheet, dtype = str)
 
         with st.expander("Click here to check the file you upoaded"):
             st.write("Number of observations: " + str(len(raw_data)))
