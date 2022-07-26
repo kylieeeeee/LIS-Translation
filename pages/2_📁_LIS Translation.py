@@ -20,7 +20,7 @@ st.set_page_config(page_title="LIS Translation Tool", page_icon='🗃️',
 
 
 st.title('🗃️LIS File Translation Tool🧰⚙️')
-st.header('📁LIS Translation')
+st.header('LIS Translation')
 st.subheader('Use the similarity scores to find the most similar LIS test name in the dictionary and translate into Roche Assay names')
 with st.expander('Click here to view the instructions'):
     st.markdown("""
@@ -59,7 +59,7 @@ if uploaded_file is not None:
         LIS_sheet = pd.read_excel(LIS_file, sheet_name = selected_sheet, dtype=str)
         st.session_state.raw_data = LIS_sheet
 
-        with st.expander("Click here to check the file you upoaded"):
+        with st.expander("Click here to check the file you uploaded"):
             st.write("Number of observations: " + str(len(LIS_sheet)))
             st.write("Here are the first 10 rows of raw data")
             st.write(LIS_sheet.head(10))
@@ -126,14 +126,15 @@ st.markdown('---')
 st.write("Have you uploaded your own dictionary at the **Upload Dictionary** page?")
 upload = st.checkbox('Yes, I uploaded a dictionary.')
 st.info('If this is the first time translating this file or you did not upload your dictionary,\
-         please **DO NOT CHECK** the box.')
+         please **DO NOT CHECK** the box or uncheck the box.')
 try:
     if upload:
         newDict = st.session_state.newDict
         panelDict.update(newDict)
         st.session_state.panelDict = panelDict
 except AttributeError:
-    st.error("ERROR: You did not upload your dictionary. Please visit **Upload Dictionary** page to upload your dictionary or uncheck the box.")
+    st.error("ERROR: You did not upload your dictionary. Please visit **Upload Dictionary** page to upload your dictionary.")
+
 
 # Start matching
 if st.button('Click here to start matching'):
@@ -142,10 +143,10 @@ if st.button('Click here to start matching'):
         st.warning("You haven't uploaded raw file yet")
     else:
         # Get unique test names from all LIS objects
-        list_of_LIS = st.session_state.list_of_LIS
         tests = list(set(x.getTestName() for x in list_of_LIS))
         st.session_state.tests = tests
 
+    # STEP 1: Compare similarity and generate panel definitions for LIS tests in raw data
         # Take all unique test names in the raw file and find the most similar test name in the
         # panel dictionary and then translate it into corresponding roche assay names.
         
@@ -177,12 +178,11 @@ if st.button('Click here to start matching'):
                                         'ConfidenceScore': 0}
             st.session_state.match_result = match_result
 
-
-        # Turn the match_result from get_close_match into a dataframe
+    # STEP 2:  Turn the match_result(dictionary) into a dataframe
         # @input
-        # match_result: a dictionary
+        # match_result: a dictionary of panel definitions for LIS tests in raw data
         # @output
-        # panel_df: a dataframe
+        # panel_df: a formatted dataframe for panel definition (will be one of the sheet in the excel output)
         panel_df = pd.DataFrame()
         for key, value in match_result.items():
             tmp = pd.DataFrame([[key, value['Include'], value['Material'], 
@@ -198,12 +198,12 @@ if st.button('Click here to start matching'):
         st.session_state.panel_df = panel_df
 
 
-        # Append the data in match_result as new columns to the raw file
-        # New columns are Similat Test, Assay Name, Confidence Score
+    # STEP 3: Append match_result as new columns to the raw file
+        # New columns are Similat Test, Material, Assay Name, Confidence Score
         # @input
-        # raw: A DataFrame selected by user which contains the LIS test names. 
+        # raw_data: A DataFrame selected by user which contains the LIS test names. 
         #      The column of LIS test names cannot have missing values
-        # LIS_column_name: A string which is the column name of the LIS test name in the raw file
+        # LIS_column: A string which is the column name of the LIS test name in the raw file
         # match_result:  A dictionary contains the test names and similar test and roche assay name
         # @return
         # result_df: A DataFrame contains the raw file and three new columns
@@ -213,7 +213,7 @@ if st.button('Click here to start matching'):
         result_df.dropna(subset = [LIS_column], inplace = True) #Drop the row if test name is missing
         st.session_state.result_df = result_df
 
-        #### Do not add rows if Include == 0
+        #### Remove the tests from the result_df if Include == 0
         for index, row in result_df.iterrows():
             if match_result[row[LIS_column]]['Include'] == 1:
                 result_df.loc[index,'Similar Test'] = match_result[row[LIS_column]]['SimilarTest']
@@ -225,7 +225,7 @@ if st.button('Click here to start matching'):
             st.session_state.result_df = result_df
 
 
-
+    # STEP 4: generate Graph Data Worksheet and 5 column worksheet
         # Graph data worksheet
         # Patient ID/Assay Name/LIS Test Name/Location-Ward/Priority/
         # Received Time/Verified Time/Lab/Data Origin
@@ -237,6 +237,7 @@ if st.button('Click here to start matching'):
 
 
         # 5 columns worksheet
+        # the columns that user selected from raw data and translated assay names and material of the test
         columns = st.session_state.columns_for_5 + ['Material', 'Assay Name']
         five_column_df = result_df.copy().loc[:, columns]
         five_column_df = five_column_df.assign(Assay_Name = five_column_df['Assay Name'].str.split(','))
@@ -258,10 +259,12 @@ if st.button('Click here to start matching'):
             st.dataframe(five_column_df)
             st.caption("<NA> means there is no value in the cell")  
 
+
         st.warning("The result file is still generating, please wait until the download button show up...")
         # Formatting the new file name
         today = datetime.today().strftime("%Y-%m-%d_%H%M")+'_'
-        new_file_name = 'Translated_' + today + st.session_state.file_name 
+        new_file_name = 'Translated_' + today + st.session_state.file_name
+         
         # output the excel file and let the user download
         sheet_list = ['Panel Definitions', 'Graph Data Worksheet', '5 Column Worksheet',
                     'Raw data with matching results', 'Raw Data']
