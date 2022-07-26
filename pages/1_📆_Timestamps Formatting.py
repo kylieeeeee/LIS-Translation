@@ -15,7 +15,7 @@ st.set_page_config(page_title="LIS Translation Tool", page_icon='🗃️',
 
 
 st.title('🗃️LIS File Translation Tool🧰⚙️')
-st.header('📆Timestamps Formatting')
+st.header('Timestamps Formatting')
 st.subheader('Fill in the missing timestamps and format the date and time')
 with st.expander('Click here to view the instructions'):
     st.markdown("""
@@ -49,7 +49,7 @@ if uploaded_file is not None:
         # Read the data in as string
         raw_data = pd.read_excel(LIS_file, sheet_name = selected_sheet, dtype=str)
 
-        with st.expander("Click here to check the file you upoaded"):
+        with st.expander("Click here to check the file you uploaded"):
             st.write("Number of observations: " + str(len(raw_data)))
             st.write("Here are the first 10 rows of raw data")
             st.write(raw_data.head(10))
@@ -68,8 +68,7 @@ if uploaded_file is not None:
             st.markdown('---')
             # select the presentation of timestamps: date and time are in the same or separate columns
             presentation = st.selectbox('Are the date and time displayed in one or separate columns for the timestamps in your data?',
-                        ('Please Select', 'Separate Columns', 'One Column'))
-            st.warning('A row will be dropped if there are any missing timestamps in the columns you selected')
+                        ('Please Select', 'One Column', 'Separate Columns'))
             filled_data = raw_data.copy()
             st.session_state.filled_data = filled_data
 
@@ -77,6 +76,7 @@ if uploaded_file is not None:
                 # select the timestamp columns
                 datetime_columns = st.multiselect("Please select the columns of timestamps that need formatting.\
                                             Multiple selections are allowed", raw_data.columns)
+                st.info('A row will be dropped if there are any missing timestamps in the columns you selected')
                 st.session_state.datetime_columns = datetime_columns
                 
                 if len(datetime_columns) > 0:
@@ -106,15 +106,23 @@ if uploaded_file is not None:
                             try:
                                 #parse the dates into standardized format
                                 if delimiter == '@': # for the special format "OCT 13,2020@12:23"
-                                    # replace the , so it can be parsed by the parser
+                                    # replace the , so it can be parsed correctly by the parser
                                     filled_data[col] = filled_data[col].apply(lambda d: d.replace(',', ' '))
+                                    filled_data[col] = filled_data[col].apply(lambda dt: parser.parse(dt))
 
-                                filled_data[col] = filled_data[col].apply(lambda dt: parser.parse(dt))
+                                else:
+                                    # handle the timestamp value error(0000/00/00 00:00:00), replace with NaT
+                                    filled_data[col] = pd.to_datetime(filled_data[col], errors='coerce')
+
+                                # drop the rows with missing timestamps or value error(0000/00/00 00:00:00)
+                                filled_data = filled_data.dropna(subset = [col])
+
+                                # separate the timestamp into Date and Time columns
                                 date_col = col + '__Date'
                                 time_col = col + '__Time'
-                                filled_data[date_col] = filled_data[col].apply(lambda dt: dt.date())
+                                filled_data[date_col] = filled_data[col].apply(lambda dt: dt.strftime('%Y-%m-%d'))
                                 filled_data[time_col] = filled_data[col].apply(lambda dt: str(dt.time()))
-                            
+
                             except parser.ParserError:
                                  st.error('ERROR: Please make sure you select the correct delimiter for column '+ col)
                     
@@ -145,7 +153,7 @@ if uploaded_file is not None:
                     # formate date columns
                     for col in date_columns:
                         try:
-                            filled_data[col] = filled_data[col].apply(lambda d: parser.parse(d).date())
+                            filled_data[col] = filled_data[col].apply(lambda d: parser.parse(d).strftime('%Y-%m-%d'))
                             st.session_state.filled_data = filled_data
                         except parser.ParserError:
                             st.error("ERROR: There is unknown format of date that cannot be parsed by the program.")
@@ -169,6 +177,7 @@ if uploaded_file is not None:
             - For example, in the parsing of '12/20' , which got parsed as 2022-12-20 as 2022 is the current year
             - If a time is not supplied then 00:00:00 is used
             """)
+            st.write("There are " + str(len(raw_data) - len(filled_data)) + " rows be dropped because of missing timestamps")
             st.write(filled_data)
             st.caption('Please scroll to the right to see the newly created columns')
             st.caption("<NA> means there is no value in the cell")
