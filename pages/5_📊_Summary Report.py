@@ -47,12 +47,13 @@ if uploaded_file is not None:
     # get the file name of raw data
     st.session_state.file_name = uploaded_file.name
 
-    # # read in all the sheets in the uploaded excel file
-    # dict_of_df = f.load_all_sheets(uploaded_file)
-    # st.session_state.dict_of_df = dict_of_df
+    # read in all the sheets in the uploaded excel file
+    dict_of_df = f.load_all_sheets(uploaded_file)
+    st.session_state.dict_of_df = dict_of_df
+    all_sheets = ['(Not Selected Yet)'] + list(dict_of_df.keys())
 
-    LIS_file = pd.ExcelFile(uploaded_file)
-    all_sheets = ['(Not Selected Yet)'] + LIS_file.sheet_names
+    # LIS_file = pd.ExcelFile(uploaded_file)
+    # all_sheets = ['(Not Selected Yet)'] + LIS_file.sheet_names
     
     ## User select the sheet name that needs translation
     selected_sheet = st.selectbox('Select the sheet with timestamps standardized data:', all_sheets)
@@ -60,8 +61,8 @@ if uploaded_file is not None:
     ## to read just one sheet to dataframe and display the sheet:
     if selected_sheet != '(Not Selected Yet)':
         # Read the data in as string
-        # raw_data = dict_of_df[selected_sheet]
-        raw_data = pd.read_excel(LIS_file, sheet_name = selected_sheet, dtype=str)
+        raw_data = dict_of_df[selected_sheet]
+        # raw_data = pd.read_excel(LIS_file, sheet_name = selected_sheet, dtype=str)
 
         with st.expander("Click here to check the file you uploaded"):
             st.write("Number of observations: " + str(len(raw_data)))
@@ -70,7 +71,6 @@ if uploaded_file is not None:
             st.caption("<NA> means there is no value in the cell")
 
         all_columns = ['(Not Selected Yet)'] + list(raw_data.columns)
-        # ID_column = st.selectbox("Select the column for patient ID", all_columns) 
         test_name_col = st.selectbox('Select the column for tests name', all_columns)
         arrival_date_col = st.selectbox('Select the column for tests arrival date', all_columns)
         st.info("This column should only contain **DATE** and be in the format of **yyyy-mm-dd**")
@@ -127,7 +127,7 @@ if uploaded_file is not None:
                     start_date = aggregated_date['Arrival_Date'].iloc[0]
                     end_date = aggregated_date['Arrival_Date'].iloc[-1]
 
-                    st.subheader("There were total " + str(number_of_tests) + " tests conducted between " + start_date + ' and ' + end_date)
+                    st.subheader("There were total " + str(number_of_tests) + " tests arrived between " + start_date + ' and ' + end_date)
                     
                     tab1, tab2, tab3 = st.tabs(['Aggregated by arrival date and hour', 'Aggregated by arrival date', 'Aggregated by arrival day of week'])
                     with tab1:
@@ -159,8 +159,8 @@ if uploaded_file is not None:
                     dict_of_df = st.session_state.dict_of_df
                     # output the excel file and let the user download
                     sheet_name_list = ['Aggregated by date and time', 'Aggregated by date', 'Aggregated by day of week',
-                                'Raw Data'] # + list(dict_of_df.keys())
-                    df_list = [aggregated_date_hour, aggregated_date, aggregated_week, raw_data] # + list(dict_of_df.values())
+                                'Raw Data'] + list(dict_of_df.keys())
+                    df_list = [aggregated_date_hour, aggregated_date, aggregated_week, raw_data] + list(dict_of_df.values())
                     df_xlsx = f.dfs_to_excel(df_list, sheet_name_list)
                     st.download_button(label='📥 Download Summary Report 📥',
                                                     data=df_xlsx,
